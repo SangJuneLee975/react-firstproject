@@ -1,0 +1,17 @@
+/* BoardList.css */
+.board-container {
+  width: 80%;
+  margin: 0 auto;
+}
+
+.board-list {
+  list-style: none;
+  padding: 0;
+}
+
+.board-item {
+  margin-bottom: 20px;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
