@@ -1,12 +1,12 @@
 export const getUserInfoFromToken = (token) => {
   if (!token) return null;
   try {
-    const base64Url = token.split('.')[1]; // ÆäÀÌ·Îµå ºÎºĞ¸¸ ÃßÃâ
+    const base64Url = token.split('.')[1]; // í˜ì´ë¡œë“œ ë¶€ë¶„ë§Œ ì¶”ì¶œ
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const payload = JSON.parse(window.atob(base64));
     return payload;
   } catch (error) {
-    console.error('ÅäÅ« µğÄÚµù ¿À·ù:', error);
+    console.error('í† í° ë””ì½”ë”© ì˜¤ë¥˜:', error);
     return null;
   }
 };

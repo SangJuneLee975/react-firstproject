@@ -1,9 +1,8 @@
-// atoms.js
 import { atom } from 'recoil';
 
 export const isLoggedInState = atom({
   key: 'isLoggedInState',
-  default: localStorage.getItem('token') ? true : false, // ÅäÅ«ÀÌ ÀÖÀ¸¸é ·Î±×ÀÎ »óÅÂ À¯Áö
+  default: localStorage.getItem('token') ? true : false, // í† í°ì´ ìˆìœ¼ë©´ ë¡œê·¸ì¸ ìƒíƒœ ìœ ì§€
 });
 
 export const boardListState = atom({
