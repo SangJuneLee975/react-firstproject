@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { useRecoilState } from 'recoil';
 import axios from 'axios';
 import { isLoggedInState } from '../recoil/atoms';
+import { Button } from 'antd';
 
 const Home = () => {
   const [isLoggedIn, setIsLoggedIn] = useRecoilState(isLoggedInState);
@@ -33,7 +34,9 @@ const Home = () => {
       {isLoggedIn ? (
         <div>
           <p>환영합니다!</p>
-          <button onClick={handleLogout}>로그아웃</button>
+          <Button type="default" onClick={handleLogout}>
+            로그아웃
+          </Button>
         </div>
       ) : (
         <div>

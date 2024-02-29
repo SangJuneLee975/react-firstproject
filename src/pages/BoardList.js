@@ -2,6 +2,8 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { getUserInfoFromToken } from '../components/parsejwt';
+import { Pagination, Button } from 'antd';
+import '../css/Boardcss.css';
 
 const BoardList = () => {
   const [boards, setBoards] = useState([]);
@@ -89,16 +91,24 @@ const BoardList = () => {
               <td>{new Date(board.date).toLocaleDateString()}</td>
               <td>
                 {userNickname === board.writer && (
-                  <button onClick={() => handleDelete(board.id)}>삭제</button>
+                  <Button type="default" onClick={() => handleDelete(board.id)}>
+                    삭제
+                  </Button>
                 )}
               </td>
             </tr>
           ))}
         </tbody>
       </table>
-      <div>{renderPageNumbers()}</div>
+
+      <Pagination
+        current={currentPage + 1} // Ant Design Pagination은 1부터 시작
+        onChange={(page) => setCurrentPage(page - 1)} // API 호출을 위해 페이지 번호를 0부터 시작
+        total={totalBoards}
+        pageSize={pageSize}
+      />
       <Link to="/board/new">
-        <button>글쓰기</button>
+        <Button type="default">글쓰기</Button>
       </Link>
     </div>
   );

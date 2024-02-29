@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import '../css/BoardCreatecss.css';
 
 const BoardCreate = () => {
   const [formData, setFormData] = useState({
@@ -37,27 +38,37 @@ const BoardCreate = () => {
   };
 
   return (
-    <div>
-      <h2>게시글 작성</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          제목:
+    <div className="create-container">
+      <h2 className="form-heading">게시글 작성</h2>
+      <form onSubmit={handleSubmit} className="form-container">
+        <div className="input-group">
+          <label htmlFor="title" className="form-label">
+            제목:
+          </label>
           <input
+            id="title"
             type="text"
             name="title"
             value={formData.title}
             onChange={handleChange}
+            className="text-input"
           />
-        </label>
-        <label>
-          내용:
+        </div>
+        <div className="input-group">
+          <label htmlFor="content" className="form-label">
+            내용:
+          </label>
           <textarea
+            id="content"
             name="content"
             value={formData.content}
             onChange={handleChange}
+            className="text-area"
           />
-        </label>
-        <button type="submit">작성하기</button>
+        </div>
+        <button type="submit" className="submit-btn">
+          작성하기
+        </button>
       </form>
     </div>
   );

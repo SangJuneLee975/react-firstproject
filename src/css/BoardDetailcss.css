@@ -1,0 +1,40 @@
+.board-detail-container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.board-detail-header {
+  margin-bottom: 20px;
+}
+
+.board-meta {
+  font-size: 14px;
+  color: #666;
+}
+
+.board-content p {
+  margin-bottom: 20px;
+}
+
+.edit-form label {
+  display: block;
+  margin-bottom: 10px;
+}
+
+.edit-form input,
+.edit-form textarea {
+  width: 100%;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+.navigation-buttons button {
+  margin-right: 10px;
+}
+
+.board-meta-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+}

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useRecoilState } from 'recoil';
+import { useSetRecoilState } from 'recoil';
 import { isLoggedInState } from '../recoil/atoms';
+import { Button } from 'antd';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,8 @@ const Login = () => {
     password: '',
   });
   const navigate = useNavigate();
-  const [setIsLoggedIn] = useRecoilState(isLoggedInState);
+
+  const setIsLoggedIn = useSetRecoilState(isLoggedInState); // 변경된 부분
 
   // // spread연산자. 객체나 배열을 확장하거나, 함수 호출 시 인자 목록을 확장하는 데 사용
   const handleChange = (e) => {
@@ -59,7 +61,9 @@ const Login = () => {
             onChange={handleChange}
           />
         </label>
-        <button type="submit">로그인</button>
+        <Button type="default" htmlType="submit">
+          로그인
+        </Button>
       </form>
     </div>
   );

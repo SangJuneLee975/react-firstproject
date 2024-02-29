@@ -1,6 +1,13 @@
-import React from 'react';
-import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-// React 와 react-router-dom에서 필요한 모듈들을 가져오기
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { Layout, Menu, Breadcrumb } from 'antd';
+import {
+  DesktopOutlined,
+  PieChartOutlined,
+  FileOutlined,
+  TeamOutlined,
+  UserOutlined,
+} from '@ant-design/icons';
 
 import SignupPage from './pages/SignupPage';
 import LoginPage from './pages/LoginPage';
@@ -9,26 +16,71 @@ import BoardList from './pages/BoardList';
 import BoardCreate from './pages/BoardCreate';
 import Home from './pages/Home';
 
-// 컴포넌트들을 가져오기
+const { Header, Content, Footer, Sider } = Layout;
+
+function getItem(label, key, icon, children) {
+  return {
+    key,
+    icon,
+    children,
+    label,
+  };
+}
+
+const items = [
+  getItem('옵션 1', '1', <PieChartOutlined />),
+  getItem('옵션 2', '2', <DesktopOutlined />),
+  getItem('사용자', 'sub1', <UserOutlined />, [
+    getItem('Tom', '3'),
+    getItem('Bill', '4'),
+    getItem('Alex', '5'),
+  ]),
+  getItem('팀', 'sub2', <TeamOutlined />, [
+    getItem('팀 1', '6'),
+    getItem('팀 2', '8'),
+  ]),
+  getItem('파일', '9', <FileOutlined />),
+];
 
 function App() {
+  const [collapsed, setCollapsed] = useState(false);
+
   return (
     <Router>
-      <Routes>
-        <Route path="/" element={<Home />} />
-
-        <Route path="/login" element={<LoginPage />} />
-        <Route path="/signup" element={<SignupPage />} />
-
-        <Route path="/board" element={<BoardList />} />
-        <Route path="/board/new" element={<BoardCreate />} />
-        <Route path="/board/:id" element={<BoardDetail />} />
-      </Routes>
+      <Layout style={{ minHeight: '100vh' }}>
+        <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed}>
+          <div className="logo" />
+          <Menu
+            theme="dark"
+            defaultSelectedKeys={['1']}
+            mode="inline"
+            items={items}
+          />
+        </Sider>
+        <Layout>
+          <Header style={{ padding: 0 }} />
+          <Content style={{ margin: '0 16px' }}>
+            <Breadcrumb style={{ margin: '16px 0' }}>
+              <Breadcrumb.Item>Home</Breadcrumb.Item>
+            </Breadcrumb>
+            <div style={{ padding: 24, minHeight: 360, background: '#fff' }}>
+              <Routes>
+                <Route path="/" element={<Home />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="/board" element={<BoardList />} />
+                <Route path="/board/new" element={<BoardCreate />} />
+                <Route path="/board/:id" element={<BoardDetail />} />
+              </Routes>
+            </div>
+          </Content>
+          <Footer style={{ textAlign: 'center' }}>
+            Ant Design ©{new Date().getFullYear()} Created by Ant UED
+          </Footer>
+        </Layout>
+      </Layout>
     </Router>
   );
 }
-// Router 라우팅 활성화
-// Routes 라우팅 경로를 설정하고 경로에 해당하는 컴포넌트를 렌더링함
-// Route 경로와 연결된 페에지 컴퍼넌트를 정의
 
 export default App;
