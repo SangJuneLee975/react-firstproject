@@ -12,7 +12,7 @@ const Login = () => {
   });
   const navigate = useNavigate();
 
-  const setIsLoggedIn = useSetRecoilState(isLoggedInState); // 변경된 부분
+  const setIsLoggedIn = useSetRecoilState(isLoggedInState);
 
   // // spread연산자. 객체나 배열을 확장하거나, 함수 호출 시 인자 목록을 확장하는 데 사용
   const handleChange = (e) => {

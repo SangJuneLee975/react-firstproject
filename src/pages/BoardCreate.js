@@ -43,7 +43,7 @@ const BoardCreate = () => {
       <form onSubmit={handleSubmit} className="form-container">
         <div className="input-group">
           <label htmlFor="title" className="form-label">
-            제목:
+            제목
           </label>
           <input
             id="title"
@@ -56,7 +56,7 @@ const BoardCreate = () => {
         </div>
         <div className="input-group">
           <label htmlFor="content" className="form-label">
-            내용:
+            내용
           </label>
           <textarea
             id="content"
