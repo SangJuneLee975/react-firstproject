@@ -4,20 +4,19 @@ import { Input, Button } from 'antd';
 
 const { TextArea } = Input;
 
-const CommentForm = ({ boardId, token, refreshComments }) => {
+const CommentForm = ({ boardId, token, refreshComments, setComments }) => {
   const [newComment, setNewComment] = useState('');
 
   const handleCommentSubmit = async () => {
     try {
-      await axios.post(
+      const response = await axios.post(
         `http://localhost:8080/api/comments/board/${boardId}`,
         { content: newComment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setNewComment('');
-      if (refreshComments) {
-        refreshComments();
-      }
+
+      setComments((currentComments) => [...currentComments, response.data]);
     } catch (error) {
       console.error('댓글 작성 중 오류 발생:', error);
     }

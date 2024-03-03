@@ -4,8 +4,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { getUserInfoFromToken } from '../components/parsejwt';
 import { List, Button, Input, Typography } from 'antd';
 import '../css/BoardDetailcss.css';
-import CommentList from './CommentList.js';
-import CommentForm from './CommentForm.js';
+import CommentList from './CommentList';
+import CommentForm from './CommentForm';
 
 const { TextArea } = Input;
 
@@ -17,19 +17,18 @@ const BoardDetail = () => {
   const [editing, setEditing] = useState(false);
   const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
-  const [comments, setComments] = useState([]);
+  const [comments, setComments] = useState([]); // 댓글 목록 상태 추가
 
   const token = localStorage.getItem('token');
   const userInfo = getUserInfoFromToken(token);
   const userNickname = userInfo?.nickname;
 
+  // 게시글 상세 정보를 가져오는 함수
   const fetchBoardDetails = useCallback(async () => {
     try {
       const response = await axios.get(
         `http://localhost:8080/api/boards/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setBoard(response.data);
       setEditedTitle(response.data.title);
@@ -39,31 +38,34 @@ const BoardDetail = () => {
     }
   }, [id, token]);
 
+  // 댓글 목록을 가져오는 함수
   const fetchComments = useCallback(async () => {
     try {
       const response = await axios.get(
         `http://localhost:8080/api/comments/board/${id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
       setComments(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error('댓글을 가져오는 중 에러:', error);
     }
   }, [id, token]);
 
+  // 컴포넌트 마운트 시 게시글 상세 정보와 댓글 목록을 가져오기
   useEffect(() => {
     fetchBoardDetails();
     fetchComments();
   }, [fetchBoardDetails, fetchComments]);
 
+  // 이전, 다음 게시글로 네비게이션하는 함수
   const handlePrevNextNavigation = (direction) => {
     const newId =
       direction === 'prev' ? parseInt(id, 10) - 1 : parseInt(id, 10) + 1;
     navigate(`/board/${newId}`);
   };
 
+  // 편집 모드를 토글하는 함수
   const handleEditToggle = () => {
     if (userNickname === board.writer) {
       setEditing(!editing);
@@ -72,19 +74,15 @@ const BoardDetail = () => {
     }
   };
 
+  // 게시글을 수정하는 함수
   const handleEditSubmit = async () => {
     try {
       await axios.put(
         `http://localhost:8080/api/boards/${id}`,
-        {
-          title: editedTitle,
-          content: editedContent,
-        },
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { title: editedTitle, content: editedContent },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      fetchBoardDetails();
+      fetchBoardDetails(); // 게시글 상세 정보를 다시 가져옵니다.
       setEditing(false);
     } catch (error) {
       console.error('게시글 수정 중 오류 발생:', error);
@@ -98,6 +96,7 @@ const BoardDetail = () => {
         header={
           <div>
             <Typography.Title level={4}>{board.title}</Typography.Title>
+            {}
           </div>
         }
         footer={
@@ -116,6 +115,7 @@ const BoardDetail = () => {
           </div>
         }
       >
+        {/* 게시글 내용과 수정 폼 */}
         <List.Item className="board-meta-container">
           <span>작성자: {board.writer}</span>
           <span>작성일: {board.date}</span>
@@ -144,9 +144,18 @@ const BoardDetail = () => {
           </>
         )}
       </List>
-
-      <CommentList boardId={id} token={token} />
-      <CommentForm boardId={id} token={token} />
+      <CommentList
+        boardId={id}
+        token={token}
+        comments={comments}
+        userInfo={userInfo}
+      />
+      <CommentForm
+        boardId={id}
+        token={token}
+        refreshComments={fetchComments}
+        setComments={setComments}
+      />
     </div>
   );
 };
