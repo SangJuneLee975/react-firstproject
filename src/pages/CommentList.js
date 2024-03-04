@@ -1,55 +1,60 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { List, Button, Input, message } from 'antd';
+import { getUserInfoFromToken } from '../components/parsejwt';
 
 const { TextArea } = Input;
 
-const CommentsList = ({ boardId, token, userInfo }) => {
-  const [comments, setComments] = useState([]);
+const CommentsList = ({ boardId, token, comments, updateComments }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedContent, setEditedContent] = useState('');
+  const userInfo = getUserInfoFromToken(token);
 
   useEffect(() => {
+    // 댓글 가져오기
+    const fetchComments = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:8080/api/comments/board/${boardId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        updateComments();
+      } catch (error) {
+        console.error('댓글을 가져오는 중 에러:', error);
+      }
+    };
+
     fetchComments();
   }, [boardId, token]);
 
-  const fetchComments = async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/api/comments/board/${boardId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      setComments(response.data);
-    } catch (error) {
-      console.error('댓글을 가져오는 중 에러:', error);
-    }
-  };
-
+  // 댓글을 삭제하는 함수
   const deleteComment = async (commentId) => {
     try {
       await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      fetchComments();
-      message.success('댓글이 삭제되었습니다.');
+      // 댓글 목록 갱신
+      updateComments(); // 부모 컴포넌트로부터 전달받은 함수 호출
     } catch (error) {
       console.error('댓글 삭제 중 오류 발생:', error);
-      message.error('댓글을 삭제하는데 실패했습니다.');
     }
   };
 
+  // 댓글 편집하는 함수
   const startEdit = (comment) => {
     setEditingCommentId(comment.id);
     setEditedContent(comment.content);
   };
 
+  // 댓글 편집 취소하는 함수
   const cancelEdit = () => {
     setEditingCommentId(null);
     setEditedContent('');
   };
 
+  // 댓글을 수정하는 함수
   const submitEdit = async (commentId) => {
     try {
       await axios.put(
@@ -57,13 +62,11 @@ const CommentsList = ({ boardId, token, userInfo }) => {
         { content: editedContent },
         { headers: { Authorization: `Bearer ${token}` } }
       );
+
       cancelEdit(); // 편집 상태 취소
-      fetchComments(); // 댓글 목록 새로고침
-      console.log('User ID from token:', userInfo?.userId);
+      updateComments(); // 부모 컴포넌트로부터 전달받은 함수 호출
       message.success('댓글이 수정되었습니다.');
     } catch (error) {
-      console.error('댓글 수정 중 오류 발생:', error);
-      console.log('User ID from token:', userInfo?.userId);
       message.error('댓글을 수정하는데 실패했습니다.');
     }
   };
@@ -73,6 +76,7 @@ const CommentsList = ({ boardId, token, userInfo }) => {
       dataSource={comments}
       header={`${comments.length} 댓글`}
       itemLayout="horizontal"
+      locale={{ emptyText: ' ' }} //  No data 숨기기
       renderItem={(item) => (
         <List.Item
           actions={[

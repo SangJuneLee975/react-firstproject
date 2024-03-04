@@ -4,7 +4,7 @@ import { Input, Button } from 'antd';
 
 const { TextArea } = Input;
 
-const CommentForm = ({ boardId, token, refreshComments, setComments }) => {
+const CommentForm = ({ boardId, token, onCommentAdded }) => {
   const [newComment, setNewComment] = useState('');
 
   const handleCommentSubmit = async () => {
@@ -14,9 +14,10 @@ const CommentForm = ({ boardId, token, refreshComments, setComments }) => {
         { content: newComment },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setNewComment('');
+      console.log('댓글 추가 응답 데이터:', response.data);
 
-      setComments((currentComments) => [...currentComments, response.data]);
+      setNewComment('');
+      onCommentAdded(response.data); // 부모 컴포넌트에 댓글 리스트 업데이트
     } catch (error) {
       console.error('댓글 작성 중 오류 발생:', error);
     }

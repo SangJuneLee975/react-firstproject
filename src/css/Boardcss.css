@@ -14,6 +14,9 @@
   padding: 10px;
   border: 1px solid #ddd;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .board-table th {
@@ -22,6 +25,30 @@
 
 .board-table tr:nth-child(even) {
   background-color: #f9f9f9;
+}
+/* '번호' 열의 너비 조정 */
+.board-table th:nth-child(1),
+.board-table td:nth-child(1) {
+  width: 10%; /* '번호' 열의 너비를 전체의 10%로 설정 */
+}
+/* '제목' 열에 대한 세부 스타일 설정 */
+.board-table th:nth-child(2),
+.board-table td:nth-child(2) {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* '작성자' 열의 너비 조정 */
+.board-table th:nth-child(3),
+.board-table td:nth-child(3) {
+  width: 20%; /* 예시로 '작성자' 열의 너비를 전체의 20%로 설정 */
+}
+
+/* '작성일' 열의 너비 조정 */
+.board-table th:nth-child(4),
+.board-table td:nth-child(4) {
+  width: 20%; /* 예시로 '작성일' 열의 너비를 전체의 20%로 설정 */
 }
 
 .page-numbers {
@@ -97,4 +124,32 @@
 
 .submit-btn:hover {
   background-color: #0056b3;
+}
+
+.column-id {
+  min-width: 8%;
+  max-width: 8%;
+}
+
+.column-title {
+  min-width: 40%;
+  max-width: 40%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.column-writer {
+  min-width: 15%;
+  max-width: 15%;
+}
+
+.column-date {
+  min-width: 15%;
+  max-width: 15%;
+}
+
+.column-action {
+  min-width: 10%;
+  max-width: 10%;
 }

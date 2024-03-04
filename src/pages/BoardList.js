@@ -2,12 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import { getUserInfoFromToken } from '../components/parsejwt';
-import { Pagination, Button } from 'antd';
+import { Pagination, Button, Table, Space } from 'antd';
 import '../css/Boardcss.css';
 
 const BoardList = () => {
   const [boards, setBoards] = useState([]);
-  const [currentPage, setCurrentPage] = useState(0); // 현재 페이지
+  const [currentPage, setCurrentPage] = useState(1); // 페이지는 1부터 시작
   const [pageSize] = useState(5); // 페이지당 게시글 수
   const [totalBoards, setTotalBoards] = useState(0); // 총 게시글 수
   const token = localStorage.getItem('token');
@@ -17,7 +17,9 @@ const BoardList = () => {
   const fetchBoards = useCallback(async () => {
     try {
       const response = await axios.get(
-        `http://localhost:8080/api/boards/paged?page=${currentPage}&size=${pageSize}`,
+        `http://localhost:8080/api/boards/paged?page=${
+          currentPage - 1
+        }&size=${pageSize}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -29,11 +31,11 @@ const BoardList = () => {
     } catch (error) {
       console.error('게시판을 불러오는 중에 오류가 발생:', error);
     }
-  }, [currentPage, pageSize, token]); // 의존성 배열에 사용되는 변수들을 추가합니다.
+  }, [currentPage, pageSize, token]);
 
   useEffect(() => {
     fetchBoards();
-  }, [fetchBoards]); // fetchBoards 함수를 의존성 배열에 추가합니다.
+  }, [fetchBoards]);
 
   const handleDelete = async (id) => {
     try {
@@ -49,66 +51,78 @@ const BoardList = () => {
     }
   };
 
-  // 페이지 번호를 렌더링하기 위한 함수
-  const renderPageNumbers = () => {
-    const totalPages = Math.ceil(totalBoards / pageSize);
-    const pages = [];
-    for (let i = 0; i < totalPages; i++) {
-      pages.push(
-        <button
-          key={i}
-          onClick={() => setCurrentPage(i)}
-          disabled={currentPage === i}
-        >
-          {i + 1}
-        </button>
-      );
-    }
-    return pages;
-  };
+  const columns = [
+    {
+      title: '번호',
+      dataIndex: 'id',
+      key: 'id',
+      className: 'column-id',
+      width: '8%',
+    },
+    {
+      title: '제목',
+      dataIndex: 'title',
+      key: 'title',
+      className: 'column-title',
+      width: '40%',
+      render: (text, record) => (
+        <Link to={`/board/${record.id}`} className="link-title">
+          {text}
+        </Link>
+      ),
+    },
+    {
+      title: '작성자',
+      dataIndex: 'writer',
+      key: 'writer',
+      className: 'column-writer',
+      width: '15%',
+    },
+    {
+      title: '작성일',
+      dataIndex: 'date',
+      key: 'date',
+      className: 'column-date',
+      width: '15%',
+      render: (date) => new Date(date).toLocaleDateString(),
+    },
+    {
+      title: '',
+      key: 'action',
+      className: 'column-action',
+      width: '10%',
+      render: (_, record) =>
+        userNickname === record.writer && (
+          <Space size="middle">
+            <Button type="default" onClick={() => handleDelete(record.id)}>
+              삭제
+            </Button>
+          </Space>
+        ),
+    },
+  ];
 
   return (
     <div>
       <h1>게시글 목록</h1>
-      <table className="board-table">
-        <thead>
-          <tr>
-            <th>번호</th>
-            <th>제목</th>
-            <th>작성자</th>
-            <th>작성일</th>
-            <th>작업</th>
-          </tr>
-        </thead>
-        <tbody>
-          {boards.map((board) => (
-            <tr key={board.id}>
-              <td>{board.id}</td>
-              <td>
-                <Link to={`/board/${board.id}`}>{board.title}</Link>
-              </td>
-              <td>{board.writer}</td>
-              <td>{new Date(board.date).toLocaleDateString()}</td>
-              <td>
-                {userNickname === board.writer && (
-                  <Button type="default" onClick={() => handleDelete(board.id)}>
-                    삭제
-                  </Button>
-                )}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
+      <Table
+        columns={columns}
+        dataSource={boards}
+        pagination={false}
+        rowKey="id"
+        tableLayout="fixed" // 테이블 레이아웃을 고정
+      />
       <Pagination
-        current={currentPage + 1} // Ant Design Pagination은 1부터 시작
-        onChange={(page) => setCurrentPage(page - 1)} // API 호출을 위해 페이지 번호를 0부터 시작
+        current={currentPage}
+        onChange={(page) => setCurrentPage(page)}
         total={totalBoards}
         pageSize={pageSize}
+        style={{ marginTop: 8 }}
       />
       <Link to="/board/new">
-        <Button type="default">글쓰기</Button>
+        <Button type="default" style={{ marginTop: 8 }}>
+          글쓰기
+        </Button>
       </Link>
     </div>
   );

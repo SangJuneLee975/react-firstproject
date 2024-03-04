@@ -40,31 +40,54 @@ const Login = () => {
   };
 
   return (
-    <div>
-      <h2>로그인</h2>
-      <form onSubmit={handleSubmit}>
-        <label>
-          아이디:
-          <input
-            type="text"
-            name="userId"
-            value={formData.userId}
-            onChange={handleChange}
-          />
-        </label>
-        <label>
-          비밀번호:
-          <input
-            type="password"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-          />
-        </label>
-        <Button type="default" htmlType="submit">
-          로그인
-        </Button>
-      </form>
+    <div className="container">
+      <div className="form-box">
+        <div className="header-form">
+          <h4 className="text-primary text-center">
+            <i className="fa fa-user-circle" style={{ fontSize: '110px' }}></i>
+          </h4>
+          <div className="image"></div>
+        </div>
+        <div className="body-form">
+          <form onSubmit={handleSubmit}>
+            <div className="input-group mb-3">
+              <div className="input-group-prepend">
+                <span className="input-group-text">
+                  <i className="fa fa-user"></i>
+                </span>
+              </div>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="Username"
+                name="userId"
+                value={formData.userId}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="input-group mb-3">
+              <div className="input-group-prepend">
+                <span className="input-group-text">
+                  <i className="fa fa-lock"></i>
+                </span>
+              </div>
+              <input
+                type="password"
+                className="form-control"
+                placeholder="Password"
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+              />
+            </div>
+            <button type="submit" className="btn btn-secondary btn-block">
+              LOGIN
+            </button>
+            <div className="message"></div>
+          </form>
+          <div className="social"></div>
+        </div>
+      </div>
     </div>
   );
 };

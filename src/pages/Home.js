@@ -34,9 +34,6 @@ const Home = () => {
       {isLoggedIn ? (
         <div>
           <p>환영합니다!</p>
-          <Button type="default" onClick={handleLogout}>
-            로그아웃
-          </Button>
         </div>
       ) : (
         <div>
@@ -44,8 +41,6 @@ const Home = () => {
           <Link to="/signup">회원가입</Link>
         </div>
       )}
-
-      <Link to="/board">게시글 목록으로 이동</Link>
     </div>
   );
 };
