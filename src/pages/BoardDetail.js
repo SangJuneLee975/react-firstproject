@@ -38,6 +38,19 @@ const BoardDetail = () => {
     }
   }, [id, token]);
 
+  // 댓글 목록을 업데이트하는 함수
+  const updateComments = useCallback(async () => {
+    try {
+      const response = await axios.get(
+        `http://localhost:8080/api/comments/board/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setComments(response.data);
+    } catch (error) {
+      console.error('댓글을 가져오는 중 에러:', error);
+    }
+  }, [id, token]);
+
   // 댓글 목록을 가져오는 함수
   const fetchComments = useCallback(async () => {
     try {
@@ -51,11 +64,6 @@ const BoardDetail = () => {
       console.error('댓글을 가져오는 중 에러:', error);
     }
   }, [id, token]);
-
-  // // 댓글을 추가하는 함수
-  // const addNewComment = (newComment) => {
-  //   setComments((currentComments) => [...currentComments, newComment]);
-  // };
 
   // 컴포넌트 마운트 시 게시글 상세 정보와 댓글 목록을 가져오기
   useEffect(() => {
@@ -93,19 +101,6 @@ const BoardDetail = () => {
       console.error('게시글 수정 중 오류 발생:', error);
     }
   };
-
-  // 댓글 목록을 업데이트하는 함수
-  const updateComments = useCallback(async () => {
-    try {
-      const response = await axios.get(
-        `http://localhost:8080/api/comments/board/${id}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      setComments(response.data);
-    } catch (error) {
-      console.error('댓글을 가져오는 중 에러:', error);
-    }
-  }, [id, token]);
 
   return (
     <div>

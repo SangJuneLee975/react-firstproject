@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { List, Button, Input, message } from 'antd';
 import { getUserInfoFromToken } from '../components/parsejwt';
+import CommentForm from './CommentForm';
 
 const { TextArea } = Input;
 
@@ -9,6 +10,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
   const [editingCommentId, setEditingCommentId] = useState(null);
   const [editedContent, setEditedContent] = useState('');
   const userInfo = getUserInfoFromToken(token);
+  const [activeReplyBox, setActiveReplyBox] = useState(null);
 
   useEffect(() => {
     // 댓글 가져오기
@@ -27,7 +29,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
     };
 
     fetchComments();
-  }, [boardId, token]);
+  }, [boardId, token, updateComments]);
 
   // 댓글을 삭제하는 함수
   const deleteComment = async (commentId) => {
@@ -35,8 +37,8 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
       await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      // 댓글 목록 갱신
-      updateComments(); // 부모 컴포넌트로부터 전달받은 함수 호출
+
+      updateComments();
     } catch (error) {
       console.error('댓글 삭제 중 오류 발생:', error);
     }
@@ -71,12 +73,16 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
     }
   };
 
+  // 대댓글 폼 표시
+  const toggleReplyForm = (commentId) => {
+    setActiveReplyBox(activeReplyBox === commentId ? null : commentId);
+  };
+
   return (
     <List
       dataSource={comments}
       header={`${comments.length} 댓글`}
       itemLayout="horizontal"
-      locale={{ emptyText: ' ' }} //  No data 숨기기
       renderItem={(item) => (
         <List.Item
           actions={[
@@ -95,11 +101,15 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
               </>
             ) : (
               <>
+                {/* 댓글 버튼 폼 */}
                 <Button key="edit" onClick={() => startEdit(item)}>
                   수정
                 </Button>
                 <Button key="delete" onClick={() => deleteComment(item.id)}>
                   삭제
+                </Button>
+                <Button key="reply" onClick={() => toggleReplyForm(item.id)}>
+                  대댓글 달기
                 </Button>
               </>
             ),
@@ -112,14 +122,29 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
               autoSize
             />
           ) : (
-            <List.Item.Meta
-              title={
-                <span>
-                  {item.userId} - {item.date}
-                </span>
-              }
-              description={item.content}
-            />
+            <>
+              {' '}
+              {/* 댓글창 */}
+              <List.Item.Meta
+                title={
+                  <span>
+                    {item.userId} - {new Date(item.date).toLocaleString()}
+                  </span>
+                }
+                description={item.content}
+              />
+              {activeReplyBox === item.id && (
+                <CommentForm
+                  boardId={boardId}
+                  token={token}
+                  parentId={item.id}
+                  onCommentAdded={() => {
+                    updateComments();
+                    setActiveReplyBox(null); // 대댓글 폼 숨기기
+                  }}
+                />
+              )}
+            </>
           )}
         </List.Item>
       )}
