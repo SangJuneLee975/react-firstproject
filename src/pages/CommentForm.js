@@ -8,10 +8,7 @@ const CommentForm = ({ boardId, token, onCommentAdded, parentId = null }) => {
   const [commentContent, setCommentContent] = useState('');
 
   const handleCommentSubmit = async () => {
-    const url = parentId // 부모 댓글이 있으면 대댓글 추가 API 호출하고 없으면 일반 댓글 추가 API 호출
-      ? `http://localhost:8080/api/comments/${parentId}/reply`
-      : `http://localhost:8080/api/comments/board/${boardId}`;
-
+    const url = `http://localhost:8080/api/comments/board/${boardId}`;
     try {
       await axios.post(
         url,

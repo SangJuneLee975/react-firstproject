@@ -1,0 +1,61 @@
+.reply-input {
+  margin-left: 20px; /* 들여쓰기 */
+  margin-top: 15px;
+
+  padding-left: 10px; /* 내부 왼쪽 패딩 */
+}
+
+.reply-comment .reply-indent {
+  padding-left: 20px;
+  border-left: 2px solid #ccc;
+  margin-left: 10px;
+  position: relative;
+}
+
+.reply-comment .reply-indent::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -10px;
+  transform: translateY(-50%);
+}
+
+.reply-item {
+  margin-left: 30px;
+  padding-left: 10px;
+  border-left: 2px solid #ddd;
+  position: relative;
+}
+
+.reply-item::before {
+  content: '';
+  position: absolute;
+  left: -20px;
+  top: 0;
+  height: 100%;
+  width: 1px;
+  background-color: #ddd;
+}
+
+/* depth에 따른 들여쓰기  */
+.depth-0 {
+  padding-left: 0; /* 원본 댓글에는 패딩 없음 */
+}
+
+.depth-1 {
+  padding-left: 30px; /* 대댓글에 적용될 패딩 */
+  margin-left: 30px;
+
+  position: relative;
+}
+
+.depth-1::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: -10px;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 100%;
+  background-color: #ddd;
+}

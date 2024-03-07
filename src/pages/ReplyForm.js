@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { Input, Button } from 'antd';
-import '../css/Replycss.css';
+import '../css/Reply.css';
 
 const { TextArea } = Input;
 
@@ -30,7 +30,7 @@ const ReplyForm = ({ boardId, token, onReplyAdded, parentId }) => {
         rows={4}
         value={replyContent}
         onChange={(e) => setReplyContent(e.target.value)}
-        placeholder="대댓글을 작성하세요"
+        placeholder="대댓글 대댓글을 작성하세요"
       />
       <Button
         type="primary"

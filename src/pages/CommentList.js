@@ -2,7 +2,9 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { List, Button, Input, message } from 'antd';
 import { getUserInfoFromToken } from '../components/parsejwt';
-import CommentForm from './CommentForm';
+import ReplyForm from './ReplyForm';
+import { RightOutlined } from '@ant-design/icons';
+import '../css/Reply.css';
 
 const { TextArea } = Input;
 
@@ -66,7 +68,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
       );
 
       cancelEdit(); // 편집 상태 취소
-      updateComments(); // 부모 컴포넌트로부터 전달받은 함수 호출
+      updateComments();
       message.success('댓글이 수정되었습니다.');
     } catch (error) {
       message.error('댓글을 수정하는데 실패했습니다.');
@@ -78,6 +80,11 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
     setActiveReplyBox(activeReplyBox === commentId ? null : commentId);
   };
 
+  // depth 함수
+  const getDepthClass = (depth) => {
+    return `depth-${depth}`;
+  };
+
   return (
     <List
       dataSource={comments}
@@ -85,6 +92,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
       itemLayout="horizontal"
       renderItem={(item) => (
         <List.Item
+          className={getDepthClass(item.depth)} // depth 클래스 적용
           actions={[
             editingCommentId === item.id ? (
               <>
@@ -101,7 +109,6 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
               </>
             ) : (
               <>
-                {/* 댓글 버튼 폼 */}
                 <Button key="edit" onClick={() => startEdit(item)}>
                   수정
                 </Button>
@@ -123,27 +130,31 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
             />
           ) : (
             <>
-              {' '}
-              {/* 댓글창 */}
               <List.Item.Meta
                 title={
                   <span>
                     {item.userId} - {new Date(item.date).toLocaleString()}
                   </span>
                 }
-                description={item.content}
+                description={
+                  <>
+                    {item.content}
+                    {activeReplyBox === item.id && (
+                      <div className="reply-input">
+                        <ReplyForm
+                          boardId={boardId}
+                          token={token}
+                          parentId={item.id}
+                          onReplyAdded={() => {
+                            updateComments();
+                            setActiveReplyBox(null);
+                          }}
+                        />
+                      </div>
+                    )}
+                  </>
+                }
               />
-              {activeReplyBox === item.id && (
-                <CommentForm
-                  boardId={boardId}
-                  token={token}
-                  parentId={item.id}
-                  onCommentAdded={() => {
-                    updateComments();
-                    setActiveReplyBox(null); // 대댓글 폼 숨기기
-                  }}
-                />
-              )}
             </>
           )}
         </List.Item>

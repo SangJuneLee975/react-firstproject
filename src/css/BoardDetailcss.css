@@ -38,3 +38,18 @@
   justify-content: space-between;
   width: 100%;
 }
+
+.reply-comment {
+  padding-left: 20px; /* 들여쓰기 크기 */
+  position: relative;
+}
+
+.reply-comment::before {
+  content: '';
+  width: 2px;
+  background-color: #ccc; /* 선 색상 */
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 8px; /* 선의 위치 조정 */
+}

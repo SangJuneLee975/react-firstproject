@@ -6,6 +6,7 @@ import { List, Button, Input, Typography } from 'antd';
 import '../css/BoardDetailcss.css';
 import CommentList from './CommentList';
 import CommentForm from './CommentForm';
+import ReplyForm from './ReplyForm';
 
 const { TextArea } = Input;
 
@@ -18,6 +19,7 @@ const BoardDetail = () => {
   const [editedTitle, setEditedTitle] = useState('');
   const [editedContent, setEditedContent] = useState('');
   const [comments, setComments] = useState([]); // 댓글 목록 상태 추가
+  const [activeReplyForm, setActiveReplyForm] = useState(null); // 대댓글 폼
 
   const token = localStorage.getItem('token');
   const userInfo = getUserInfoFromToken(token);
@@ -102,6 +104,11 @@ const BoardDetail = () => {
     }
   };
 
+  // 대댓글 폼을 표시하고 숨기는 함수
+  const toggleReplyForm = (commentId) => {
+    setActiveReplyForm(activeReplyForm === commentId ? null : commentId);
+  };
+
   return (
     <div>
       <List
@@ -157,12 +164,17 @@ const BoardDetail = () => {
           </>
         )}
       </List>
+      {/* 댓글 리스트 */}
       <CommentList
         boardId={id}
         token={token}
         comments={comments}
         updateComments={updateComments} // 댓글 목록을 갱신하는 함수를 props로 전달
+        onToggleReplyForm={toggleReplyForm} // 대댓글 폼 토글 함수를 props로 전달
       />
+      {/* 대댓글폼 */}
+
+      {/* 댓글폼 */}
       <CommentForm boardId={id} token={token} onCommentAdded={updateComments} />
     </div>
   );
