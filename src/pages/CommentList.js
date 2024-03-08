@@ -3,7 +3,7 @@ import axios from 'axios';
 import { List, Button, Input, message } from 'antd';
 import { getUserInfoFromToken } from '../components/parsejwt';
 import ReplyForm from './ReplyForm';
-import { RightOutlined } from '@ant-design/icons';
+import { UpCircleOutlined } from '@ant-design/icons';
 import '../css/Reply.css';
 
 const { TextArea } = Input;
@@ -85,6 +85,32 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
     return `depth-${depth}`;
   };
 
+  // 댓글창 버튼 렌더링
+  const renderItemActions = (item) => {
+    if (editingCommentId === item.id) {
+      return [
+        <Button key="cancel" onClick={cancelEdit}>
+          취소
+        </Button>,
+        <Button key="save" type="primary" onClick={() => submitEdit(item.id)}>
+          저장
+        </Button>,
+      ];
+    } else {
+      return [
+        <Button key="edit" onClick={() => startEdit(item)}>
+          수정
+        </Button>,
+        <Button key="delete" onClick={() => deleteComment(item.id)}>
+          삭제
+        </Button>,
+        <Button key="reply" onClick={() => toggleReplyForm(item.id)}>
+          대댓글 달기
+        </Button>,
+      ];
+    }
+  };
+
   return (
     <List
       dataSource={comments}
@@ -92,36 +118,12 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
       itemLayout="horizontal"
       renderItem={(item) => (
         <List.Item
-          className={getDepthClass(item.depth)} // depth 클래스 적용
-          actions={[
-            editingCommentId === item.id ? (
-              <>
-                <Button key="cancel" onClick={cancelEdit}>
-                  취소
-                </Button>
-                <Button
-                  key="save"
-                  type="primary"
-                  onClick={() => submitEdit(item.id)}
-                >
-                  저장
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button key="edit" onClick={() => startEdit(item)}>
-                  수정
-                </Button>
-                <Button key="delete" onClick={() => deleteComment(item.id)}>
-                  삭제
-                </Button>
-                <Button key="reply" onClick={() => toggleReplyForm(item.id)}>
-                  대댓글 달기
-                </Button>
-              </>
-            ),
-          ]}
+          className={getDepthClass(item.depth)}
+          actions={renderItemActions(item)}
         >
+          {item.depth === 1 && (
+            <UpCircleOutlined style={{ color: '#08c', marginRight: 12 }} />
+          )}
           {editingCommentId === item.id ? (
             <TextArea
               value={editedContent}

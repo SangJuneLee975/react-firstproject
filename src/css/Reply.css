@@ -1,8 +1,9 @@
 .reply-input {
-  margin-left: 20px; /* 들여쓰기 */
-  margin-top: 15px;
+  /* 대댓글 달기 버튼 들여쓰기 */
+  margin-left: 10px; /* 들여쓰기 */
+  margin-top: 15px; /* 위쪽 여백 */
 
-  padding-left: 10px; /* 내부 왼쪽 패딩 */
+  padding-left: 5px; /* 내부 왼쪽 패딩 */
 }
 
 .reply-comment .reply-indent {
@@ -21,7 +22,7 @@
 }
 
 .reply-item {
-  margin-left: 30px;
+  margin-left: 20px;
   padding-left: 10px;
   border-left: 2px solid #ddd;
   position: relative;
@@ -43,8 +44,8 @@
 }
 
 .depth-1 {
-  padding-left: 30px; /* 대댓글에 적용될 패딩 */
-  margin-left: 30px;
+  padding-left: 40px; /* 대댓글에 적용될 패딩 */
+  margin-left: 30px; /* 대댓글 패딩 */
 
   position: relative;
 }
@@ -57,5 +58,4 @@
   transform: translateY(-50%);
   width: 1px;
   height: 100%;
-  background-color: #ddd;
 }

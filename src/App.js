@@ -37,7 +37,7 @@ function getItem(label, key, icon, children) {
 }
 
 const items = [
-  getItem('옵션 1', '1', <PieChartOutlined />),
+  getItem('HOME', '1', <PieChartOutlined />),
   getItem('게시판', '2', <DesktopOutlined />),
   getItem('사용자', 'sub1', <UserOutlined />, [
     getItem('Tom', '3'),
@@ -67,7 +67,13 @@ function App() {
   };
 
   const onMenuClick = (e) => {
+    // 왼쪽 사이트바 메뉴들
     switch (e.key) {
+      case '1':
+        if (navigateFunction) {
+          navigateFunction('/'); // 홈 경로로 이동
+        }
+        break;
       case '2':
         if (navigateFunction) {
           navigateFunction('/board');

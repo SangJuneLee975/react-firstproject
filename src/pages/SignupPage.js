@@ -20,7 +20,7 @@ const Signup = () => {
       await axios.post('http://localhost:8080/user/add', formData, {
         withCredentials: true,
       });
-      // Redirect or show success message
+      // 리다이렉션
     } catch (error) {
       console.error('회원가입 중 오류 발생:', error);
     }
