@@ -1,12 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import NavigationHandler from './Menu/NavigationHandler';
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Link,
-  useNavigate,
-} from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { Layout, Menu, Breadcrumb } from 'antd';
 import {
   DesktopOutlined,
@@ -56,22 +50,14 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   let navigateFunction;
 
-  useEffect(() => {
-    // 로그인 상태를 localStorage에서 불러옴
-    const loggedIn = localStorage.getItem('isLoggedIn') === 'true';
-    setIsLoggedIn(loggedIn);
-  }, []);
-
   // 로그인 상태를 변경하는 함수
   const handleLogin = () => {
     setIsLoggedIn(true);
-    localStorage.setItem('isLoggedIn', 'true'); // 로그인 상태를 localStorage에 저장
   };
 
   // 로그아웃 상태를 변경하는 함수
   const handleLogout = () => {
     setIsLoggedIn(false);
-    localStorage.setItem('isLoggedIn', 'false'); // 로그아웃 상태를 localStorage에 저장
   };
 
   const onMenuClick = (e) => {
@@ -123,9 +109,9 @@ function App() {
           >
             <div>
               {isLoggedIn ? (
-                <a onClick={handleLogout} style={{ color: 'white' }}>
+                <button onClick={handleLogout} style={{ color: 'white' }}>
                   로그아웃
-                </a>
+                </button>
               ) : (
                 <>
                   <Link

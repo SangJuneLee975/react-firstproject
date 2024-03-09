@@ -22,6 +22,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    console.log('handleSubmit called');
     try {
       const response = await axios.post(
         'http://localhost:8080/user/login',
@@ -81,7 +82,11 @@ const Login = () => {
                 onChange={handleChange}
               />
             </div>
-            <Button type="submit" className="btn btn-secondary btn-block">
+            <Button
+              type="primary"
+              htmlType="submit"
+              className="btn btn-secondary btn-block"
+            >
               LOGIN
             </Button>
             <div className="message"></div>
