@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSetRecoilState } from 'recoil';
 import { isLoggedInState } from '../recoil/atoms';
 import { Button } from 'antd';
+import '../css/Login.css';
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -80,9 +81,9 @@ const Login = () => {
                 onChange={handleChange}
               />
             </div>
-            <button type="submit" className="btn btn-secondary btn-block">
+            <Button type="submit" className="btn btn-secondary btn-block">
               LOGIN
-            </button>
+            </Button>
             <div className="message"></div>
           </form>
           <div className="social"></div>

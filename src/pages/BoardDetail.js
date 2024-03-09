@@ -25,6 +25,16 @@ const BoardDetail = () => {
   const userInfo = getUserInfoFromToken(token);
   const userNickname = userInfo?.nickname;
 
+  const date = new Date(board.date);
+  const formattedDate = date.toLocaleString('ko-KR', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
+
   // 게시글 상세 정보를 가져오는 함수
   const fetchBoardDetails = useCallback(async () => {
     try {
@@ -138,7 +148,7 @@ const BoardDetail = () => {
         {/* 게시글 내용과 수정 폼 */}
         <List.Item className="board-meta-container">
           <span>작성자: {board.writer}</span>
-          <span>작성일: {board.date}</span>
+          <span>작성일: {formattedDate}</span>
         </List.Item>
         {!editing ? (
           <List.Item>{board.content}</List.Item>

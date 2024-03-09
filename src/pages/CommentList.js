@@ -24,7 +24,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        updateComments();
+        updateComments(response.data);
       } catch (error) {
         console.error('댓글을 가져오는 중 에러:', error);
       }
@@ -87,6 +87,27 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
 
   // 댓글창 버튼 렌더링
   const renderItemActions = (item) => {
+    // 수정과 삭제 버튼은 현재 로그인한 사용자가 댓글 작성자일 때만 표시
+
+    const userActions =
+      userInfo?.userId === item.userId
+        ? [
+            <Button key="edit" onClick={() => startEdit(item)}>
+              수정
+            </Button>,
+            <Button key="delete" onClick={() => deleteComment(item.id)}>
+              삭제
+            </Button>,
+          ]
+        : [];
+
+    // 대댓글 버튼은 모든 사용자에게  항상 표시하기
+    const replyAction = [
+      <Button key="reply" onClick={() => toggleReplyForm(item.id)}>
+        대댓글 달기
+      </Button>,
+    ];
+
     if (editingCommentId === item.id) {
       return [
         <Button key="cancel" onClick={cancelEdit}>
@@ -97,17 +118,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
         </Button>,
       ];
     } else {
-      return [
-        <Button key="edit" onClick={() => startEdit(item)}>
-          수정
-        </Button>,
-        <Button key="delete" onClick={() => deleteComment(item.id)}>
-          삭제
-        </Button>,
-        <Button key="reply" onClick={() => toggleReplyForm(item.id)}>
-          대댓글 달기
-        </Button>,
-      ];
+      return [...userActions, ...replyAction];
     }
   };
 
@@ -116,6 +127,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
       dataSource={comments}
       header={`${comments.length} 댓글`}
       itemLayout="horizontal"
+      locale={{ emptyText: ' ' }} // No data 메시지 숨기기
       renderItem={(item) => (
         <List.Item
           className={getDepthClass(item.depth)}
@@ -124,6 +136,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
           {item.depth === 1 && (
             <UpCircleOutlined style={{ color: '#08c', marginRight: 12 }} />
           )}
+
           {editingCommentId === item.id ? (
             <TextArea
               value={editedContent}
@@ -135,7 +148,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
               <List.Item.Meta
                 title={
                   <span>
-                    {item.userId} - {new Date(item.date).toLocaleString()}
+                    {item.nickname} - {new Date(item.date).toLocaleString()}
                   </span>
                 }
                 description={
