@@ -104,7 +104,7 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
     // 대댓글 버튼은 모든 사용자에게  항상 표시하기
     const replyAction = [
       <Button key="reply" onClick={() => toggleReplyForm(item.id)}>
-        대댓글 달기
+        답글
       </Button>,
     ];
 
