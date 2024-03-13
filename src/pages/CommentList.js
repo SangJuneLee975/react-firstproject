@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { List, Button, Input, message } from 'antd';
+import { List, Button, Input, message, Modal } from 'antd';
 import { getUserInfoFromToken } from '../components/parsejwt';
 import ReplyForm from './ReplyForm';
 import { UpCircleOutlined } from '@ant-design/icons';
@@ -34,16 +34,32 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
   }, [boardId, token, updateComments]);
 
   // 댓글을 삭제하는 함수
-  const deleteComment = async (commentId) => {
-    try {
-      await axios.delete(`http://localhost:8080/api/comments/${commentId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      updateComments();
-    } catch (error) {
-      console.error('댓글 삭제 중 오류 발생:', error);
-    }
+  const deleteComment = (commentId) => {
+    Modal.confirm({
+      title: '댓글을 삭제하시겠습니까?',
+      content: '이 작업은 되돌릴 수 없습니다.',
+      okText: '예',
+      okType: 'danger',
+      cancelText: '아니오',
+      onOk: async () => {
+        try {
+          await axios.delete(
+            `http://localhost:8080/api/comments/${commentId}`,
+            {
+              headers: { Authorization: `Bearer ${token}` },
+            }
+          );
+          updateComments(); // 댓글 목록 업데이트
+          message.success('댓글이 삭제되었습니다.');
+        } catch (error) {
+          console.error('댓글 삭제 중 오류 발생:', error);
+          message.error('댓글을 삭제하는데 실패했습니다.');
+        }
+      },
+      onCancel() {
+        console.log('삭제 취소');
+      },
+    });
   };
 
   // 댓글 편집하는 함수
@@ -76,8 +92,11 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
   };
 
   // 대댓글 폼 표시
-  const toggleReplyForm = (commentId) => {
-    setActiveReplyBox(activeReplyBox === commentId ? null : commentId);
+  const toggleReplyForm = (commentId, depth) => {
+    if (depth === 0) {
+      // 원 댓글에만 대댓글 폼 활성화
+      setActiveReplyBox(activeReplyBox === commentId ? null : commentId);
+    }
   };
 
   // depth 함수
@@ -102,11 +121,17 @@ const CommentsList = ({ boardId, token, comments, updateComments }) => {
         : [];
 
     // 대댓글 버튼은 모든 사용자에게  항상 표시하기
-    const replyAction = [
-      <Button key="reply" onClick={() => toggleReplyForm(item.id)}>
-        답글
-      </Button>,
-    ];
+    const replyAction =
+      item.depth === 0
+        ? [
+            <Button
+              key="reply"
+              onClick={() => toggleReplyForm(item.id, item.depth)}
+            >
+              답글
+            </Button>,
+          ]
+        : [];
 
     if (editingCommentId === item.id) {
       return [

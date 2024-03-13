@@ -13,6 +13,11 @@ const BoardList = () => {
   const token = localStorage.getItem('token');
   const userInfo = getUserInfoFromToken(token);
   const userNickname = userInfo?.nickname; // 토큰에서 사용자 정보 추출
+  const categoryMapping = {
+    1: '잡담',
+    2: '정보',
+    3: '유머',
+  };
 
   const fetchBoards = useCallback(async () => {
     try {
@@ -58,6 +63,14 @@ const BoardList = () => {
       key: 'id',
       className: 'column-id',
       width: '8%',
+    },
+    {
+      title: '카테고리',
+      dataIndex: 'categoryId',
+      key: 'category',
+      className: 'column-category',
+      width: '15%',
+      render: (categoryId) => categoryMapping[categoryId] || '',
     },
     {
       title: '제목',

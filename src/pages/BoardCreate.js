@@ -19,12 +19,11 @@ const BoardCreate = () => {
     // 카테고리 데이터 불러오기
     const fetchCategories = async () => {
       try {
-        const { data } = await axios.get(
-          'http://localhost:8080/api/categories'
-        );
+        const { data } = await axios.get('http://localhost:8080/api/category');
+        console.log('카테고리 데이터:', data); // 로그 추가
         setCategories(data);
       } catch (error) {
-        console.log('카테고리 로딩 실패', error);
+        console.error('카테고리 로딩 실패:', error); // 로그를 좀 더 구체적으로 변경
       }
     };
     fetchCategories();
@@ -42,6 +41,10 @@ const BoardCreate = () => {
   // API를 호출하여 게시글을 생성
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!formData.categoryId) {
+      console.error('카테고리가 선택되지 않았습니다.');
+      return;
+    }
     try {
       const token = localStorage.getItem('token');
       if (!token) {
