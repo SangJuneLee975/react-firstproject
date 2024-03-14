@@ -1,18 +1,22 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { Select } from 'antd';
+import { Select, Input } from 'antd';
 import '../css/BoardCreatecss.css';
 
 const { Option } = Select;
 
 const BoardCreate = () => {
   const [categories, setCategories] = useState([]);
+  const [hashtags, setHashtags] = useState([]);
+  const [selectedHashtags, setSelectedHashtags] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     categoryId: null,
+    hashtags: [],
   });
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,22 +24,29 @@ const BoardCreate = () => {
     const fetchCategories = async () => {
       try {
         const { data } = await axios.get('http://localhost:8080/api/category');
-        console.log('카테고리 데이터:', data); // 로그 추가
         setCategories(data);
       } catch (error) {
-        console.error('카테고리 로딩 실패:', error); // 로그를 좀 더 구체적으로 변경
+        console.error('카테고리 로딩 실패:', error);
       }
     };
+
     fetchCategories();
   }, []);
 
   // spread연산자. 객체나 배열을 확장하거나, 함수 호출 시 인자 목록을 확장하는 데 사용
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
   const handleCategoryChange = (value) => {
     setFormData({ ...formData, categoryId: value });
+  };
+
+  const handleHashtagsChange = (e) => {
+    // 쉼표로 구분된 문자열을 배열로 변환해주고, 앞뒤 공백을 제거함
+    const tags = e.target.value.split(',').map((tag) => tag.trim());
+    setFormData({ ...formData, hashtags: tags.map((tag) => ({ name: tag })) });
   };
 
   // API를 호출하여 게시글을 생성
@@ -110,6 +121,13 @@ const BoardCreate = () => {
               </Option>
             ))}
           </Select>
+        </div>
+        <div className="input-group">
+          <label htmlFor="hashtags">해시태그</label>
+          <Input
+            placeholder="해시태그 입력, 쉼표로 구분"
+            onChange={handleHashtagsChange}
+          />
         </div>
         <button type="submit" className="submit-btn">
           작성하기

@@ -6,7 +6,6 @@ import { List, Button, Input, Typography } from 'antd';
 import '../css/BoardDetailcss.css';
 import CommentList from './CommentList';
 import CommentForm from './CommentForm';
-import ReplyForm from './ReplyForm';
 
 const { TextArea } = Input;
 
@@ -45,6 +44,16 @@ const BoardDetail = () => {
       setBoard(response.data);
       setEditedTitle(response.data.title);
       setEditedContent(response.data.content);
+
+      // 게시글에 연결된 해시태그 데이터 가져오기
+      const hashtagsResponse = await axios.get(
+        `http://localhost:8080/api/hashtags/board/${id}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setBoard((previousBoard) => ({
+        ...previousBoard,
+        hashtags: hashtagsResponse.data,
+      }));
     } catch (error) {
       console.error('게시판 상세 정보를 가져오는 중 에러:', error);
     }
@@ -149,6 +158,16 @@ const BoardDetail = () => {
         <List.Item className="board-meta-container">
           <span>작성자: {board.writer}</span>
           <span>작성일: {formattedDate}</span>
+        </List.Item>
+        <List.Item>
+          <div>
+            <strong>해시태그:</strong>
+            {board.hashtags?.map((tag) => (
+              <span key={tag.id} style={{ marginRight: '5px' }}>
+                #{tag.name}
+              </span>
+            ))}
+          </div>
         </List.Item>
         {!editing ? (
           <List.Item>{board.content}</List.Item>
