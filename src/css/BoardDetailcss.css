@@ -53,3 +53,41 @@
   bottom: 0;
   left: 8px; /* 선의 위치 조정 */
 }
+
+/* 해시태그 CSS */
+
+/* 상세 페이지에서 해시태그를 표시하는 컨테이너 */
+.hashtag-container {
+  display: flex; /* 가로로 나열되게 함 */
+  flex-wrap: wrap; /* 내용이 많아지면 다음 줄로 넘기기 */
+  gap: 8px; /* 해시태그 사이의 간격 */
+}
+
+/* 상세 페이지에서 개별 해시태그 스타일 */
+.hashtag-container .ant-tag {
+  margin-bottom: 8px;
+  cursor: default;
+}
+
+/* 게시글 수정중에 개별 해시태그 스타일 */
+.editable-hashtag {
+  margin-right: 8px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.editable-hashtag .ant-tag {
+  margin-right: 0;
+}
+
+.editable-hashtag .delete-tag-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #999;
+  padding-left: 4px;
+}
+
+.editable-hashtag .delete-tag-btn:hover {
+  color: #f00; /* 마우스 오버 시 아이콘 색상 변경 */
+}

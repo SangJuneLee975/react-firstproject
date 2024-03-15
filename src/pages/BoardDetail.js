@@ -2,7 +2,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getUserInfoFromToken } from '../components/parsejwt';
-import { List, Button, Input, Typography } from 'antd';
+import { List, Button, Input, Typography, Tag } from 'antd';
 import '../css/BoardDetailcss.css';
 import CommentList from './CommentList';
 import CommentForm from './CommentForm';
@@ -19,6 +19,8 @@ const BoardDetail = () => {
   const [editedContent, setEditedContent] = useState('');
   const [comments, setComments] = useState([]); // 댓글 목록 상태 추가
   const [activeReplyForm, setActiveReplyForm] = useState(null); // 대댓글 폼
+  const [editableHashtags, setEditableHashtags] = useState([]); //해시태그 수정
+  const [originalHashtags, setOriginalHashtags] = useState([]); // 기존의 해시태그 내용
 
   const token = localStorage.getItem('token');
   const userInfo = getUserInfoFromToken(token);
@@ -44,18 +46,25 @@ const BoardDetail = () => {
       setBoard(response.data);
       setEditedTitle(response.data.title);
       setEditedContent(response.data.content);
+    } catch (error) {
+      console.error('게시판 상세 정보를 가져오는 중 에러:', error);
+    }
+  }, [id, token]);
 
-      // 게시글에 연결된 해시태그 데이터 가져오기
+  // 게시글에 연결된 해시태그 데이터를 가져오는 함수
+  const fetchBoardHashtags = useCallback(async () => {
+    try {
       const hashtagsResponse = await axios.get(
         `http://localhost:8080/api/hashtags/board/${id}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      setBoard((previousBoard) => ({
-        ...previousBoard,
-        hashtags: hashtagsResponse.data,
-      }));
+      if (hashtagsResponse.data) {
+        const hashtags = hashtagsResponse.data.map((tag) => tag.name);
+        setEditableHashtags(hashtags);
+        setOriginalHashtags(hashtags); // 원래 해시태그를 복사해 저장
+      }
     } catch (error) {
-      console.error('게시판 상세 정보를 가져오는 중 에러:', error);
+      console.error('해시태그 정보를 가져오는 중 에러:', error);
     }
   }, [id, token]);
 
@@ -90,7 +99,8 @@ const BoardDetail = () => {
   useEffect(() => {
     fetchBoardDetails();
     fetchComments();
-  }, [fetchBoardDetails, id, token, fetchComments]);
+    fetchBoardHashtags();
+  }, [fetchBoardDetails, id, token, fetchComments, fetchBoardHashtags]);
 
   // 이전, 다음 게시글로 네비게이션하는 함수
   const handlePrevNextNavigation = (direction) => {
@@ -103,21 +113,82 @@ const BoardDetail = () => {
   const handleEditToggle = () => {
     if (userNickname === board.writer) {
       setEditing(!editing);
+      // 편집 모드 진입 시 원본 해시태그 상태 저장
+      setOriginalHashtags(editableHashtags.slice());
     } else {
+      // 편집 모드 취소 시 원본 해시태그로 되돌림
+      setEditableHashtags(originalHashtags.slice());
       alert('작성자만 수정할 수 있습니다.');
+    }
+  };
+
+  // 해시태그 변경 핸들러
+  const handleHashtagChange = (event, index) => {
+    const newHashtags = [...editableHashtags];
+    newHashtags[index] = event.target.value;
+    setEditableHashtags(newHashtags);
+  };
+
+  // 해시태그 추가 핸들러
+  const handleAddHashtag = () => {
+    setEditableHashtags([...editableHashtags, '']);
+  };
+
+  // 해시태그 삭제 핸들러
+  const handleRemoveHashtag = (index) => {
+    const newHashtags = editableHashtags.filter((_, idx) => idx !== index);
+    setEditableHashtags(newHashtags);
+  };
+
+  const HashtagInput = ({ onEnter }) => {
+    const [input, setInput] = useState('');
+
+    const handleInputChange = (e) => {
+      setInput(e.target.value);
+    };
+
+    const handleKeyPress = (e) => {
+      if (e.key === 'Enter' && input.trim()) {
+        onEnter(input.trim());
+        setInput('');
+        e.preventDefault(); // 폼 제출 방지
+      }
+    };
+
+    return (
+      <Input
+        value={input}
+        onChange={handleInputChange}
+        onKeyPress={handleKeyPress}
+        placeholder="해시태그 입력 후 Enter"
+        style={{ width: 'auto', marginBottom: 8 }}
+      />
+    );
+  };
+
+  const handleHashtagEnter = (newTag) => {
+    if (!editableHashtags.includes(newTag)) {
+      setEditableHashtags([...editableHashtags, newTag]);
+    } else {
+      alert('이미 추가된 해시태그입니다.');
     }
   };
 
   // 게시글을 수정하는 함수
   const handleEditSubmit = async () => {
+    const updatedData = {
+      title: editedTitle,
+      content: editedContent,
+      hashtags: editableHashtags
+        .filter((tag) => tag.trim() !== '')
+        .map((name) => ({ name })),
+    };
     try {
-      await axios.put(
-        `http://localhost:8080/api/boards/${id}`,
-        { title: editedTitle, content: editedContent },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      fetchBoardDetails(); // 게시글 상세 정보를 다시 가져옵니다.
+      await axios.put(`http://localhost:8080/api/boards/${id}`, updatedData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setEditing(false);
+      fetchBoardDetails(); // 수정 후 데이터 새로고침
     } catch (error) {
       console.error('게시글 수정 중 오류 발생:', error);
     }
@@ -159,16 +230,44 @@ const BoardDetail = () => {
           <span>작성자: {board.writer}</span>
           <span>작성일: {formattedDate}</span>
         </List.Item>
+        {/* 해시태그 보여주는 폼 */}
         <List.Item>
-          <div>
-            <strong>해시태그:</strong>
-            {board.hashtags?.map((tag) => (
-              <span key={tag.id} style={{ marginRight: '5px' }}>
-                #{tag.name}
-              </span>
+          <div className="hashtag-container">
+            {editableHashtags.map((name, idx) => (
+              <Tag key={idx} color="blue" style={{ marginRight: '5px' }}>
+                #{name}
+              </Tag>
             ))}
           </div>
         </List.Item>
+        {/* 해시태그 수정 UI */}
+        <List.Item>
+          {editing ? (
+            <>
+              <div className="editable-hashtag-container">
+                {editableHashtags.map((tag, index) => (
+                  <div key={index} className="editable-hashtag">
+                    <Tag color="blue">#{tag}</Tag>
+                    <button
+                      className="delete-tag-btn"
+                      onClick={() => handleRemoveHashtag(index)}
+                    >
+                      X
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <HashtagInput onEnter={handleHashtagEnter} />
+            </>
+          ) : (
+            board.hashtags?.map((tag, idx) => (
+              <Tag key={idx} color="blue">
+                #{tag.name}
+              </Tag>
+            ))
+          )}
+        </List.Item>
+        {/* 게시글 수정 UI */}
         {!editing ? (
           <List.Item>{board.content}</List.Item>
         ) : (
@@ -187,6 +286,7 @@ const BoardDetail = () => {
                 onChange={(e) => setEditedContent(e.target.value)}
               />
             </List.Item>
+
             <List.Item>
               <Button onClick={handleEditSubmit}>수정 완료</Button>
             </List.Item>
