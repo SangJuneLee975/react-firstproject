@@ -11,6 +11,7 @@ const BoardCreate = () => {
   const [hashtags, setHashtags] = useState([]);
   const [selectedHashtags, setSelectedHashtags] = useState([]);
   const [hashtagInput, setHashtagInput] = useState('');
+  const [files, setFiles] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -74,6 +75,11 @@ const BoardCreate = () => {
     setHashtags(hashtags.filter((_, idx) => idx !== index));
   };
 
+  //   파일 업로드 함수
+  const handleFileChange = (e) => {
+    setFiles(e.target.files);
+  };
+
   // API를 호출하여 게시글을 생성
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -81,6 +87,7 @@ const BoardCreate = () => {
       console.error('카테고리가 선택되지 않았습니다.');
       return;
     }
+
     // 해시태그 문자열 배열을 객체 배열로 변환
     const hashtagsObjArray = hashtags.map((tag) => ({ name: tag }));
 
@@ -89,6 +96,19 @@ const BoardCreate = () => {
       ...formData,
       hashtags: hashtagsObjArray,
     };
+
+    const multipartFormData = new FormData(); // FormData 객체 생성
+    multipartFormData.append(
+      'board',
+      new Blob([JSON.stringify(updatedFormData)], { type: 'application/json' })
+    ); // 게시글 데이터를 추가
+    if (files.length) {
+      // files 배열의 각 파일을 FormData에 추가
+      Array.from(files).forEach((file) => {
+        multipartFormData.append('files', file);
+      });
+    }
+
     try {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -97,10 +117,11 @@ const BoardCreate = () => {
       console.log('토큰:', token);
       await axios.post(
         'http://localhost:8080/api/boards/new',
-        updatedFormData,
+        multipartFormData,
         {
           headers: {
             Authorization: `Bearer ${token}`, // 토큰을 헤더에 포함하여 보내기
+            'Content-Type': 'multipart/form-data', // 멀티파트 폼 데이터 타입 설정
           },
         }
       );
@@ -179,6 +200,19 @@ const BoardCreate = () => {
               </Tag>
             ))}
           </div>
+        </div>
+        {/* 파일 업로드 폼 */}
+        <div className="input-group">
+          <label htmlFor="file" className="form-label">
+            파일 업로드
+          </label>
+          <input
+            type="file"
+            name="files"
+            onChange={handleFileChange}
+            className="file-input"
+            multiple
+          />
         </div>
 
         <button type="submit" className="submit-btn">

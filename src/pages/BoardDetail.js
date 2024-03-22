@@ -267,10 +267,33 @@ const BoardDetail = () => {
             ))
           )}
         </List.Item>
-        {/* 게시글 수정 UI */}
+
+        {/* 게시글 content & 게시글 수정 폼 */}
         {!editing ? (
-          <List.Item>{board.content}</List.Item>
+          <>
+            <div dangerouslySetInnerHTML={{ __html: board.content }} />
+            {/* 이미지를 표시 */}
+            {board.imageUrls &&
+              board.imageUrls.map((url, index) => (
+                <img
+                  key={index}
+                  src={url}
+                  alt={`Uploaded ${index}`}
+                  style={{ maxWidth: '100%', marginTop: '10px' }}
+                />
+              ))}
+            {board.files &&
+              board.files.map((file, index) => (
+                <img
+                  key={index}
+                  src={file.filePath} // S3 이미지 URL
+                  alt="Uploaded"
+                  style={{ maxWidth: '100%', marginTop: '10px' }}
+                />
+              ))}
+          </>
         ) : (
+          // 게시글 수정 폼
           <>
             <List.Item>
               제목:{' '}
