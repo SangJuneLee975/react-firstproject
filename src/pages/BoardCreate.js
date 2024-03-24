@@ -9,9 +9,13 @@ const { Option } = Select;
 const BoardCreate = () => {
   const [categories, setCategories] = useState([]);
   const [hashtags, setHashtags] = useState([]);
-  const [selectedHashtags, setSelectedHashtags] = useState([]);
   const [hashtagInput, setHashtagInput] = useState('');
-  const [files, setFiles] = useState([]);
+  const [file, setFile] = useState(null); // 단일 파일 상태
+  const [fileUrl, setFileUrl] = useState(''); // 단일 파일 URL 상태
+
+  const [files, setFiles] = useState(Array(5).fill(null)); // 여러 파일 상태를 관리하는 배열
+  const [fileUrls, setFileUrls] = useState(Array(5).fill('')); // 업로드된 여러 파일 URL을 관리하는 배열
+
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -75,62 +79,88 @@ const BoardCreate = () => {
     setHashtags(hashtags.filter((_, idx) => idx !== index));
   };
 
-  //   파일 업로드 함수
-  const handleFileChange = (e) => {
-    setFiles(e.target.files);
+  // 파일 선택 핸들러
+  const handleFileSelect = (index) => (e) => {
+    const newFiles = [...files];
+    newFiles[index] = e.target.files[0];
+    setFiles(newFiles);
   };
 
   // API를 호출하여 게시글을 생성
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!formData.categoryId) {
       console.error('카테고리가 선택되지 않았습니다.');
       return;
     }
 
-    // 해시태그 문자열 배열을 객체 배열로 변환
-    const hashtagsObjArray = hashtags.map((tag) => ({ name: tag }));
-
-    // 게시글 데이터에 해시태그 객체 배열 포함
-    const updatedFormData = {
-      ...formData,
-      hashtags: hashtagsObjArray,
-    };
-
-    const multipartFormData = new FormData(); // FormData 객체 생성
-    multipartFormData.append(
-      'board',
-      new Blob([JSON.stringify(updatedFormData)], { type: 'application/json' })
-    ); // 게시글 데이터를 추가
-    if (files.length) {
-      // files 배열의 각 파일을 FormData에 추가
-      Array.from(files).forEach((file) => {
-        multipartFormData.append('files', file);
-      });
-    }
+    // 파일 업로드 로직
+    const uploadPromises = files.map((file) => {
+      if (!file) return Promise.resolve('');
+      const formData = new FormData();
+      formData.append('file', file);
+      return axios
+        .post('http://localhost:8080/api/files/upload', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        })
+        .then((res) => res.data);
+    });
 
     try {
+      // 파일을 모두 업로드하고 URL을 저장
+      const uploadedFileUrls = await Promise.all(uploadPromises);
+
+      // 빈 문자열을 제외한 URL만 필터링
+      const validUrls = uploadedFileUrls.filter((url) => url !== '');
+
+      // 해시태그가 없는 경우, 해시태그 필드를 제외하고 서버로 전송할 최종 formData 구성
+      const updatedHashtags = hashtags.map((tag) => ({ name: tag }));
+      const updatedFormData = {
+        ...formData,
+        hashtags: updatedHashtags,
+        imageUrls: validUrls, // 업로드된 파일 URL 배열
+      };
+
+      // JSON 형태로 변환하여 서버로 전송할 수 있도록 준비
+      const jsonFormData = JSON.stringify(updatedFormData);
+      const blob = new Blob([jsonFormData], { type: 'application/json' });
+
+      // 서버로 전송할 전체 FormData 구성
+      const multipartFormData = new FormData();
+      multipartFormData.append('board', blob);
+
+      // 인증 토큰 헤더 설정
       const token = localStorage.getItem('token');
-      if (!token) {
-        throw new Error('토큰이 없습니다.');
-      }
-      console.log('토큰:', token);
+      const headers = {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'multipart/form-data',
+      };
+
+      // 서버에 게시글 생성 요청
       await axios.post(
         'http://localhost:8080/api/boards/new',
         multipartFormData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`, // 토큰을 헤더에 포함하여 보내기
-            'Content-Type': 'multipart/form-data', // 멀티파트 폼 데이터 타입 설정
-          },
-        }
+        { headers }
       );
 
-      console.log('게시글 작성 요청이 성공했습니다.');
-      navigate('/board'); // 게시글 목록 페이지로 리다이렉트
+      alert('게시글이 작성되었습니다.');
+      navigate('/board'); // 성공 시 게시글 목록 페이지로 리다이렉트
     } catch (error) {
-      console.error('게시글 작성 중 오류 발생:', error);
+      console.error('게시글 작성 또는 파일 업로드 중 오류 발생:', error);
+      alert('게시글 작성 중 문제가 발생했습니다.');
     }
+  };
+
+  // 파일 선택 폼을 렌더링하는 함수
+  const renderFileInputs = () => {
+    return files.map((file, index) => (
+      <div key={index} style={{ marginBottom: '10px' }}>
+        <input type="file" onChange={handleFileSelect(index)} />
+      </div>
+    ));
   };
 
   return (
@@ -202,18 +232,7 @@ const BoardCreate = () => {
           </div>
         </div>
         {/* 파일 업로드 폼 */}
-        <div className="input-group">
-          <label htmlFor="file" className="form-label">
-            파일 업로드
-          </label>
-          <input
-            type="file"
-            name="files"
-            onChange={handleFileChange}
-            className="file-input"
-            multiple
-          />
-        </div>
+        <div className="input-group">{renderFileInputs()}</div>
 
         <button type="submit" className="submit-btn">
           작성하기
