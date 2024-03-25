@@ -267,21 +267,35 @@ const BoardDetail = () => {
             ))
           )}
         </List.Item>
+        {/* 이미지 표시 */}
+        {!editing &&
+          board.imageUrls &&
+          board.imageUrls.map((url, index) => {
+            // 문자열에서 시작과 끝의 대괄호를 제거하고, 쉼표로 분할
+            const urls = url
+              .replace(/^\[|\]$/g, '')
+              .split('","')
+              .map((u) => u.replace(/^"|"$/g, ''));
+            return urls.map((url, idx) => (
+              <div key={`${index}-${idx}`} style={{ marginBottom: '10px' }}>
+                {' '}
+                {/* 이 div가 각 이미지를 감싸는 컨테이너 역할을 함 */}
+                <img
+                  src={url}
+                  alt={`Uploaded ${idx}`}
+                  style={{ maxWidth: '20%', display: 'block' }} // display: block; 스타일 추가
+                />
+              </div>
+            ));
+          })}
 
         {/* 게시글 content & 게시글 수정 폼 */}
         {!editing ? (
           <>
+            {/* 게시글의 내용을 출력하는 부분 */}
             <div dangerouslySetInnerHTML={{ __html: board.content }} />
-            {/* 이미지를 표시 */}
-            {board.imageUrls &&
-              board.imageUrls.map((url, index) => (
-                <img
-                  key={index}
-                  src={url}
-                  alt={`Uploaded ${index}`}
-                  style={{ maxWidth: '100%', marginTop: '10px' }}
-                />
-              ))}
+            {/*  */}
+
             {board.files &&
               board.files.map((file, index) => (
                 <img
