@@ -10,11 +10,8 @@ const BoardCreate = () => {
   const [categories, setCategories] = useState([]);
   const [hashtags, setHashtags] = useState([]);
   const [hashtagInput, setHashtagInput] = useState('');
-  const [file, setFile] = useState(null); // 단일 파일 상태
-  const [fileUrl, setFileUrl] = useState(''); // 단일 파일 URL 상태
 
   const [files, setFiles] = useState(Array(5).fill(null)); // 여러 파일 상태를 관리하는 배열
-  const [fileUrls, setFileUrls] = useState(Array(5).fill('')); // 업로드된 여러 파일 URL을 관리하는 배열
 
   const [formData, setFormData] = useState({
     title: '',
@@ -112,10 +109,10 @@ const BoardCreate = () => {
     try {
       // 파일을 모두 업로드하고 URL을 저장
       const uploadedFileUrls = await Promise.all(uploadPromises);
-
+      console.log(uploadedFileUrls);
       // 빈 문자열을 제외한 URL만 필터링
       const validUrls = uploadedFileUrls.filter((url) => url !== '');
-
+      console.log(uploadedFileUrls);
       // 해시태그가 없는 경우, 해시태그 필드를 제외하고 서버로 전송할 최종 formData 구성
       const updatedHashtags = hashtags.map((tag) => ({ name: tag }));
       const updatedFormData = {

@@ -21,6 +21,7 @@ const BoardDetail = () => {
   const [activeReplyForm, setActiveReplyForm] = useState(null); // 대댓글 폼
   const [editableHashtags, setEditableHashtags] = useState([]); //해시태그 수정
   const [originalHashtags, setOriginalHashtags] = useState([]); // 기존의 해시태그 내용
+  const [imageUrls, setImageUrls] = useState([]); //이미지 상태 관리
 
   const token = localStorage.getItem('token');
   const userInfo = getUserInfoFromToken(token);
@@ -46,6 +47,7 @@ const BoardDetail = () => {
       setBoard(response.data);
       setEditedTitle(response.data.title);
       setEditedContent(response.data.content);
+      setImageUrls(response.data.imageUrls); // 이미지 URL들을 상태에 저장
     } catch (error) {
       console.error('게시판 상세 정보를 가져오는 중 에러:', error);
     }
@@ -112,12 +114,13 @@ const BoardDetail = () => {
   // 편집 모드를 토글하는 함수
   const handleEditToggle = () => {
     if (userNickname === board.writer) {
-      setEditing(!editing);
+      navigate(`/board/edit/${id}`); // 수정 페이지로 이동하는 경로로 변경
+      //  setEditing(!editing);
       // 편집 모드 진입 시 원본 해시태그 상태 저장
-      setOriginalHashtags(editableHashtags.slice());
+      //  setOriginalHashtags(editableHashtags.slice());
     } else {
       // 편집 모드 취소 시 원본 해시태그로 되돌림
-      setEditableHashtags(originalHashtags.slice());
+      //  setEditableHashtags(originalHashtags.slice());
       alert('작성자만 수정할 수 있습니다.');
     }
   };
@@ -138,6 +141,20 @@ const BoardDetail = () => {
   const handleRemoveHashtag = (index) => {
     const newHashtags = editableHashtags.filter((_, idx) => idx !== index);
     setEditableHashtags(newHashtags);
+  };
+
+  // 이미지삭제시 클라이언트의 상태뿐만 아니라 서버에도 삭제
+  const handleDeleteImage = async (deleteUrl) => {
+    try {
+      await axios.delete(`http://localhost:8080/api/boards/images`, {
+        params: { imageUrl: deleteUrl },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      // 클라이언트 상태 업데이트
+      setImageUrls(imageUrls.filter((url) => url !== deleteUrl));
+    } catch (error) {
+      console.error('이미지 삭제 중 오류:', error);
+    }
   };
 
   const HashtagInput = ({ onEnter }) => {
@@ -271,23 +288,42 @@ const BoardDetail = () => {
         {!editing &&
           board.imageUrls &&
           board.imageUrls.map((url, index) => {
-            // 문자열에서 시작과 끝의 대괄호를 제거하고, 쉼표로 분할
+            if (!url) return null; // URL이 빈 문자열이거나 null이면 렌더링하지 않음
+
+            // 대괄호와 따옴표를 제거하고 URL들을 배열로 변환
             const urls = url
-              .replace(/^\[|\]$/g, '')
-              .split('","')
-              .map((u) => u.replace(/^"|"$/g, ''));
-            return urls.map((url, idx) => (
-              <div key={`${index}-${idx}`} style={{ marginBottom: '10px' }}>
-                {' '}
-                {/* 이 div가 각 이미지를 감싸는 컨테이너 역할을 함 */}
+              .replace(/^\[|\]$/g, '') // 대괄호 제거
+              .split('","') // 쉼표로 구분
+              .map((u) => u.replace(/^"|"$/g, '')); // 따옴표 제거
+
+            return urls.map((singleUrl, idx) => {
+              if (!singleUrl) return null; // 개별 URL이 빈 문자열이거나 null이면 렌더링하지 않음
+              return (
+                <div key={`${index}-${idx}`} style={{ marginBottom: '10px' }}>
+                  <img
+                    src={singleUrl}
+                    alt={`Uploaded ${idx}`}
+                    style={{ maxWidth: '20%', display: 'block' }}
+                  />
+                </div>
+              );
+            });
+          })}
+
+        {editing && (
+          <div>
+            {imageUrls.map((url, index) => (
+              <div key={index}>
                 <img
                   src={url}
-                  alt={`Uploaded ${idx}`}
-                  style={{ maxWidth: '20%', display: 'block' }} // display: block; 스타일 추가
+                  alt={`Uploaded ${index}`}
+                  style={{ maxWidth: '100px' }}
                 />
+                <button onClick={() => handleDeleteImage(url)}>X</button>
               </div>
-            ));
-          })}
+            ))}
+          </div>
+        )}
 
         {/* 게시글 content & 게시글 수정 폼 */}
         {!editing ? (
@@ -295,16 +331,6 @@ const BoardDetail = () => {
             {/* 게시글의 내용을 출력하는 부분 */}
             <div dangerouslySetInnerHTML={{ __html: board.content }} />
             {/*  */}
-
-            {board.files &&
-              board.files.map((file, index) => (
-                <img
-                  key={index}
-                  src={file.filePath} // S3 이미지 URL
-                  alt="Uploaded"
-                  style={{ maxWidth: '100%', marginTop: '10px' }}
-                />
-              ))}
           </>
         ) : (
           // 게시글 수정 폼

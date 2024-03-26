@@ -17,6 +17,7 @@ import LoginPage from './pages/LoginPage';
 import BoardDetail from './pages/BoardDetail';
 import BoardList from './pages/BoardList';
 import BoardCreate from './pages/BoardCreate';
+import BoardEdit from './pages/BoardEdit';
 import Home from './pages/Home';
 
 const { Header, Content, Footer, Sider } = Layout;
@@ -140,6 +141,7 @@ function App() {
                 <Route path="/board" element={<BoardList />} />
                 <Route path="/board/new" element={<BoardCreate />} />
                 <Route path="/board/:id" element={<BoardDetail />} />
+                <Route path="/board/edit/:id" element={<BoardEdit />} />
               </Routes>
             </div>
           </Content>
