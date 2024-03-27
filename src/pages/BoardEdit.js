@@ -9,7 +9,7 @@ const { Option } = Select;
 const BoardEdit = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
+  const token = localStorage.getItem('token');
   const [categories, setCategories] = useState([]);
   const [hashtags, setHashtags] = useState([]);
   const [hashtagInput, setHashtagInput] = useState('');
@@ -20,7 +20,26 @@ const BoardEdit = () => {
     content: '',
     categoryId: null,
     hashtags: [],
+    imageUrls: [],
   });
+
+  // 이미지 URL 삭제 핸들러
+  const handleDeleteImage = async (imageUrl) => {
+    // 서버에 이미지 삭제 요청을 보냅니다
+    try {
+      await axios.delete(
+        `/api/boards/images?imageUrl=${encodeURIComponent(imageUrl)}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      // 클라이언트 상태를 업데이트하여 이미지 URL을 제거
+      setFormData({
+        ...formData,
+        imageUrls: formData.imageUrls.filter((url) => url !== imageUrl),
+      });
+    } catch (error) {
+      console.error('Error deleting image:', error);
+    }
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -29,6 +48,15 @@ const BoardEdit = () => {
         const { data: boardData } = await axios.get(
           `http://localhost:8080/api/boards/${id}`
         );
+
+        // 서버로부터 받은 배열의 각 항목들에서 JSON 문자열로 보이는 대괄호를 제거합니다.
+        const imageUrls = boardData.imageUrls
+          .filter((url) => url) // 빈 문자열 제거
+          .map((url) => url.replace(/^\[|\]$/g, '')) // 문자열 양 끝의 대괄호를 제거
+          .join(',') // 쉼표로 구분하여 하나의 문자열로 결합
+          .split(',') // 다시 쉼표로 구분하여 배열로 만듦
+          .map((url) => url.replace(/^"|"$/g, '')); // 문자열 양 끝의 따옴표를 제거
+
         setFormData((prevFormData) => ({
           ...prevFormData,
           title: boardData.title,
@@ -38,6 +66,8 @@ const BoardEdit = () => {
           hashtags: boardData.hashtags
             ? boardData.hashtags.map((tag) => tag.name)
             : [],
+
+          imageUrls, // 파싱된 이미지 URL을 상태에 저장합니다.
         }));
         // 마찬가지로, 여기에서도 확인
         setHashtags(
@@ -56,6 +86,7 @@ const BoardEdit = () => {
 
     fetchData();
   }, [id]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
@@ -147,6 +178,21 @@ const BoardEdit = () => {
     ));
   };
 
+  const renderImages = () => {
+    return formData.imageUrls.map((url, index) => (
+      <div key={index} style={{ marginBottom: '10px' }}>
+        <img
+          src={url}
+          alt={`Uploaded ${index}`}
+          style={{ maxWidth: '100px', marginRight: '10px' }}
+        />
+        <button type="button" onClick={() => handleDeleteImage(url)}>
+          삭제
+        </button>
+      </div>
+    ));
+  };
+
   return (
     <div className="detail-container">
       <h2 className="form-heading">게시글 수정</h2>
@@ -214,7 +260,23 @@ const BoardEdit = () => {
               </Tag>
             ))}
           </div>
+
+          <div className="input-group"></div>
+
+          <div>
+            {formData.imageUrls.map((url, index) => (
+              <div key={index}>
+                <img
+                  src={url}
+                  alt={`Uploaded ${index}`}
+                  style={{ maxWidth: '100px' }}
+                />
+                <button onClick={() => handleDeleteImage(url)}>X</button>
+              </div>
+            ))}
+          </div>
         </div>
+
         {/* 파일 업로드 폼 */}
         <div className="input-group">{renderFileInputs()}</div>
 

@@ -47,6 +47,7 @@ const BoardDetail = () => {
       setBoard(response.data);
       setEditedTitle(response.data.title);
       setEditedContent(response.data.content);
+
       setImageUrls(response.data.imageUrls); // 이미지 URL들을 상태에 저장
     } catch (error) {
       console.error('게시판 상세 정보를 가져오는 중 에러:', error);
