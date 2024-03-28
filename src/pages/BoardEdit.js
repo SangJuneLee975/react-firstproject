@@ -14,6 +14,8 @@ const BoardEdit = () => {
   const [hashtags, setHashtags] = useState([]);
   const [hashtagInput, setHashtagInput] = useState('');
   const [files, setFiles] = useState(Array(5).fill(null));
+  const [deletedImageUrls, setDeletedImageUrls] = useState([]);
+  const [fileNames, setFileNames] = useState([]);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -25,19 +27,23 @@ const BoardEdit = () => {
 
   // 이미지 URL 삭제 핸들러
   const handleDeleteImage = async (imageUrl) => {
-    // 서버에 이미지 삭제 요청을 보냅니다
     try {
-      await axios.delete(
-        `/api/boards/images?imageUrl=${encodeURIComponent(imageUrl)}`,
+      const response = await axios.delete(
+        `http://localhost:8080/api/boards/images?url=${encodeURIComponent(
+          imageUrl
+        )}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      // 클라이언트 상태를 업데이트하여 이미지 URL을 제거
-      setFormData({
-        ...formData,
-        imageUrls: formData.imageUrls.filter((url) => url !== imageUrl),
-      });
+
+      if (response.status === 200) {
+        setFormData((prevFormData) => ({
+          ...prevFormData,
+          imageUrls: prevFormData.imageUrls.filter((url) => url !== imageUrl),
+        }));
+        console.log('이미지가 성공적으로 삭제되었습니다.');
+      }
     } catch (error) {
-      console.error('Error deleting image:', error);
+      console.error('이미지 삭제 중 오류가 발생했습니다:', error);
     }
   };
 
@@ -49,13 +55,10 @@ const BoardEdit = () => {
           `http://localhost:8080/api/boards/${id}`
         );
 
-        // 서버로부터 받은 배열의 각 항목들에서 JSON 문자열로 보이는 대괄호를 제거합니다.
-        const imageUrls = boardData.imageUrls
-          .filter((url) => url) // 빈 문자열 제거
-          .map((url) => url.replace(/^\[|\]$/g, '')) // 문자열 양 끝의 대괄호를 제거
-          .join(',') // 쉼표로 구분하여 하나의 문자열로 결합
-          .split(',') // 다시 쉼표로 구분하여 배열로 만듦
-          .map((url) => url.replace(/^"|"$/g, '')); // 문자열 양 끝의 따옴표를 제거
+        const extractedFileNames = boardData.imageUrls.map((url) =>
+          url.substring(url.lastIndexOf('/') + 1)
+        );
+        setFileNames(extractedFileNames); // 파일 이름 배열을 상태에 저장합니다.
 
         setFormData((prevFormData) => ({
           ...prevFormData,
@@ -66,8 +69,6 @@ const BoardEdit = () => {
           hashtags: boardData.hashtags
             ? boardData.hashtags.map((tag) => tag.name)
             : [],
-
-          imageUrls, // 파싱된 이미지 URL을 상태에 저장합니다.
         }));
         // 마찬가지로, 여기에서도 확인
         setHashtags(
@@ -132,6 +133,7 @@ const BoardEdit = () => {
     const updatedFormData = {
       ...formData,
       hashtags: hashtags.map((tag) => ({ name: tag })),
+      deletedImageUrls: deletedImageUrls,
     };
 
     // FormData 객체 생성
@@ -144,7 +146,7 @@ const BoardEdit = () => {
     // 파일 추가
     files.forEach((file) => {
       if (file) {
-        multipartFormData.append('file', file); // 'files' 대신 'file' 사용
+        multipartFormData.append('file', file);
       }
     });
 
@@ -156,12 +158,11 @@ const BoardEdit = () => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-
-            // axios가 자동으로 FormData 인스턴스에 적합한 헤더를 설정합니다.
+            'Content-Type': 'multipart/form-data',
           },
         }
       );
-
+      console.log('수정 데이터 전송', updatedFormData);
       alert('게시글이 수정되었습니다.');
       navigate(`/board/${id}`);
     } catch (error) {
@@ -170,25 +171,29 @@ const BoardEdit = () => {
     }
   };
 
-  const renderFileInputs = () => {
-    return files.map((file, index) => (
+  // 파일 이름을 렌더링하는 새로운 함수
+  const renderFileNames = () => {
+    return fileNames.map((name, index) => (
       <div key={index} style={{ marginBottom: '10px' }}>
-        <input type="file" onChange={handleFileSelect(index)} />
+        <span>{name}</span> {/* 파일 이름을 렌더링합니다. */}
+        <button
+          type="button"
+          onClick={() =>
+            handleDeleteImage(
+              `https://your-bucket-name.s3.amazonaws.com/board-image/${name}`
+            )
+          }
+        >
+          삭제
+        </button>
       </div>
     ));
   };
 
-  const renderImages = () => {
-    return formData.imageUrls.map((url, index) => (
+  const renderFileInputs = () => {
+    return files.map((file, index) => (
       <div key={index} style={{ marginBottom: '10px' }}>
-        <img
-          src={url}
-          alt={`Uploaded ${index}`}
-          style={{ maxWidth: '100px', marginRight: '10px' }}
-        />
-        <button type="button" onClick={() => handleDeleteImage(url)}>
-          삭제
-        </button>
+        <input type="file" onChange={handleFileSelect(index)} />
       </div>
     ));
   };
@@ -263,18 +268,7 @@ const BoardEdit = () => {
 
           <div className="input-group"></div>
 
-          <div>
-            {formData.imageUrls.map((url, index) => (
-              <div key={index}>
-                <img
-                  src={url}
-                  alt={`Uploaded ${index}`}
-                  style={{ maxWidth: '100px' }}
-                />
-                <button onClick={() => handleDeleteImage(url)}>X</button>
-              </div>
-            ))}
-          </div>
+          <div className="input-group">{renderFileNames()}</div>
         </div>
 
         {/* 파일 업로드 폼 */}
