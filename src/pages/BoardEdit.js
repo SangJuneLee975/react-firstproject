@@ -28,18 +28,39 @@ const BoardEdit = () => {
   // 이미지 URL 삭제 핸들러
   const handleDeleteImage = async (imageUrl) => {
     try {
+      // URL에서 파일 이름을 추출하여 KEY로 변환합니다.
+      const key = `board-image/${imageUrl.substring(
+        imageUrl.lastIndexOf('/') + 1
+      )}`;
+
       const response = await axios.delete(
-        `http://localhost:8080/api/boards/images?url=${encodeURIComponent(
-          imageUrl
-        )}`,
-        { headers: { Authorization: `Bearer ${token}` } }
+        `http://localhost:8080/api/boards/images`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json',
+          },
+          data: { key }, // 키를 데이터로 전송합니다.
+        }
       );
 
       if (response.status === 200) {
-        setFormData((prevFormData) => ({
-          ...prevFormData,
-          imageUrls: prevFormData.imageUrls.filter((url) => url !== imageUrl),
-        }));
+        // 이미지 URL을 상태에서 제거
+        const updatedImageUrls = formData.imageUrls.filter(
+          (url) => url !== imageUrl
+        );
+        // 이미지 URL 상태 업데이트
+        setFormData({
+          ...formData,
+          imageUrls: updatedImageUrls,
+        });
+        // 삭제된 이미지 파일 이름 목록 업데이트
+        setFileNames(
+          fileNames.filter(
+            (name) => name !== imageUrl.substring(imageUrl.lastIndexOf('/') + 1)
+          )
+        );
+        setDeletedImageUrls((prevUrls) => [...prevUrls, imageUrl]);
         console.log('이미지가 성공적으로 삭제되었습니다.');
       }
     } catch (error) {
@@ -120,57 +141,6 @@ const BoardEdit = () => {
     setFiles(newFiles);
   };
 
-  // 게시글 수정 요청 처리
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!formData.categoryId) {
-      console.error('카테고리가 선택되지 않았습니다.');
-      return;
-    }
-
-    // 해시태그 상태를 formData에 추가
-    const updatedFormData = {
-      ...formData,
-      hashtags: hashtags.map((tag) => ({ name: tag })),
-      deletedImageUrls: deletedImageUrls,
-    };
-
-    // FormData 객체 생성
-    const multipartFormData = new FormData();
-    multipartFormData.append(
-      'board', // 서버가 기대하는 파트 이름으로 설정
-      new Blob([JSON.stringify(updatedFormData)], { type: 'application/json' })
-    );
-
-    // 파일 추가
-    files.forEach((file) => {
-      if (file) {
-        multipartFormData.append('file', file);
-      }
-    });
-
-    try {
-      const token = localStorage.getItem('token');
-      await axios.put(
-        `http://localhost:8080/api/boards/${id}`,
-        multipartFormData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
-          },
-        }
-      );
-      console.log('수정 데이터 전송', updatedFormData);
-      alert('게시글이 수정되었습니다.');
-      navigate(`/board/${id}`);
-    } catch (error) {
-      console.error('게시글 수정 중 오류 발생:', error);
-      alert('게시글 수정 중 문제가 발생했습니다.');
-    }
-  };
-
   // 파일 이름을 렌더링하는 새로운 함수
   const renderFileNames = () => {
     return fileNames.map((name, index) => (
@@ -196,6 +166,74 @@ const BoardEdit = () => {
         <input type="file" onChange={handleFileSelect(index)} />
       </div>
     ));
+  };
+
+  // 게시글 수정 요청 처리
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.categoryId) {
+      console.error('카테고리가 선택되지 않았습니다.');
+      return;
+    }
+
+    // 해시태그 상태를 formData에 추가
+    const updatedFormData = {
+      ...formData,
+      hashtags: hashtags.map((tag) => ({ name: tag })),
+      imageUrls: formData.imageUrls.filter(
+        (url) => !deletedImageUrls.includes(url)
+      ),
+    };
+
+    // FormData 객체 생성
+    const multipartFormData = new FormData();
+    multipartFormData.append(
+      'board',
+      new Blob([JSON.stringify(updatedFormData)], { type: 'application/json' })
+    );
+    files.forEach((file) => {
+      if (file) {
+        multipartFormData.append('file', file);
+      }
+    });
+
+    // 삭제할 이미지 URL 목록을 FormData에 추가
+    multipartFormData.append(
+      'deletedImageUrls',
+      JSON.stringify(deletedImageUrls)
+    );
+
+    // // 파일 추가
+    // files.forEach((file) => {
+    //   if (file) {
+    //     multipartFormData.append('file', file);
+    //   }
+    // });
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.put(
+        `http://localhost:8080/api/boards/${id}`,
+        multipartFormData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        console.log('수정 데이터 전송', updatedFormData);
+        alert('게시글이 수정되었습니다.');
+        setDeletedImageUrls([]); // 삭제된 이미지 URL 목록 초기화
+        navigate(`/board/${id}`); // 게시글 상세 페이지로 이동
+      }
+    } catch (error) {
+      console.error('게시글 수정 중 오류 발생:', error);
+      alert('게시글 수정 중 문제가 발생했습니다.');
+    }
   };
 
   return (
