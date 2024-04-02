@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Select, Input, Tag, Tooltip, Button } from 'antd';
+import { Select, Input, Tag } from 'antd';
 import '../css/BoardDetailcss.css'; // 기존 CSS 사용
 
 const { Option } = Select;
@@ -26,13 +26,14 @@ const BoardEdit = () => {
   });
 
   // 이미지 URL 삭제 핸들러
-  const handleDeleteImage = async (imageUrl) => {
-    try {
-      // URL에서 파일 이름을 추출하여 KEY로 변환합니다.
-      const key = `board-image/${imageUrl.substring(
-        imageUrl.lastIndexOf('/') + 1
-      )}`;
+  const handleDeleteImage = async (fullImageUrl) => {
+    const s3ImageKey = fullImageUrl.split('/').pop();
+    const payload = {
+      dbImageUrl: fullImageUrl,
+      s3ImageKey: `board-image/${s3ImageKey}`,
+    };
 
+    try {
       const response = await axios.delete(
         `http://localhost:8080/api/boards/images`,
         {
@@ -40,31 +41,34 @@ const BoardEdit = () => {
             Authorization: `Bearer ${token}`,
             'Content-Type': 'application/json',
           },
-          data: { key }, // 키를 데이터로 전송합니다.
+          data: payload,
         }
       );
 
+      // 이미지가 성공적으로 삭제되면 상태를 업데이트
       if (response.status === 200) {
-        // 이미지 URL을 상태에서 제거
+        // 삭제된 이미지 URL을 상태에서 제거
         const updatedImageUrls = formData.imageUrls.filter(
-          (url) => url !== imageUrl
+          (url) => url !== fullImageUrl
         );
-        // 이미지 URL 상태 업데이트
         setFormData({
           ...formData,
           imageUrls: updatedImageUrls,
         });
-        // 삭제된 이미지 파일 이름 목록 업데이트
+
+        // 삭제된 이미지 파일 이름 목록을 업데이트합니다.
         setFileNames(
           fileNames.filter(
-            (name) => name !== imageUrl.substring(imageUrl.lastIndexOf('/') + 1)
+            (name) =>
+              `https://testbucket975.s3.ap-northeast-2.amazonaws.com/board-image/${name}` !==
+              fullImageUrl
           )
         );
-        setDeletedImageUrls((prevUrls) => [...prevUrls, imageUrl]);
+        setDeletedImageUrls([...deletedImageUrls, fullImageUrl]);
         console.log('이미지가 성공적으로 삭제되었습니다.');
       }
     } catch (error) {
-      console.error('이미지 삭제 중 오류가 발생했습니다:', error);
+      console.error('이미지 삭제 중 오류가 발생했습니다:', error.response.data);
     }
   };
 
@@ -91,7 +95,7 @@ const BoardEdit = () => {
             ? boardData.hashtags.map((tag) => tag.name)
             : [],
         }));
-        // 마찬가지로, 여기에서도 확인
+
         setHashtags(
           boardData.hashtags ? boardData.hashtags.map((tag) => tag.name) : []
         );
@@ -145,12 +149,12 @@ const BoardEdit = () => {
   const renderFileNames = () => {
     return fileNames.map((name, index) => (
       <div key={index} style={{ marginBottom: '10px' }}>
-        <span>{name}</span> {/* 파일 이름을 렌더링합니다. */}
+        <span>{name}</span> {/*  */}
         <button
           type="button"
           onClick={() =>
             handleDeleteImage(
-              `https://your-bucket-name.s3.amazonaws.com/board-image/${name}`
+              `https://testbucket975.s3.ap-northeast-2.amazonaws.com/board-image/${name}`
             )
           }
         >
@@ -203,13 +207,6 @@ const BoardEdit = () => {
       'deletedImageUrls',
       JSON.stringify(deletedImageUrls)
     );
-
-    // // 파일 추가
-    // files.forEach((file) => {
-    //   if (file) {
-    //     multipartFormData.append('file', file);
-    //   }
-    // });
 
     try {
       const token = localStorage.getItem('token');
