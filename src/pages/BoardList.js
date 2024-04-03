@@ -13,6 +13,7 @@ const BoardList = () => {
   const token = localStorage.getItem('token');
   const userInfo = getUserInfoFromToken(token);
   const userNickname = userInfo?.nickname; // 토큰에서 사용자 정보 추출
+  // 카테고리 매핑
   const categoryMapping = {
     1: '잡담',
     2: '정보',
@@ -79,9 +80,13 @@ const BoardList = () => {
       className: 'column-title',
       width: '40%',
       render: (text, record) => (
-        <Link to={`/board/${record.id}`} className="link-title">
-          {text}
-        </Link>
+        <>
+          {/* 이미지 존재 여부에 따른 아이콘 표시 */}
+          {record.hasImage && <span className="attach-icon">ㅁㅁ📎</span>}
+          <Link to={`/board/${record.id}`} className="link-title">
+            {text}
+          </Link>
+        </>
       ),
     },
     {
